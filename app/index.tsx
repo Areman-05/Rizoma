@@ -40,6 +40,19 @@ export default function HomeScreen() {
           </Link>
         ))}
       </ScrollView>
+
+      <View className="mt-8 flex-row gap-3">
+        <Link href="/scan" asChild>
+          <Pressable className="flex-1 rounded-3xl bg-white p-4">
+            <Text className="text-center font-semibold text-rizoma-primary">Escanear planta</Text>
+          </Pressable>
+        </Link>
+        <Link href="/wishlist" asChild>
+          <Pressable className="flex-1 rounded-3xl bg-white p-4">
+            <Text className="text-center font-semibold text-rizoma-primary">Favoritos</Text>
+          </Pressable>
+        </Link>
+      </View>
     </ScrollView>
   );
 }
