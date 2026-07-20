@@ -2,25 +2,25 @@ import { Link } from "expo-router";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { plants } from "@/src/data/plants";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
+import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
+import { brand } from "@/src/brand/rizoma";
 
 export default function HomeScreen() {
   return (
-    <ScrollView className="flex-1 bg-rizoma-canvas" contentContainerClassName="px-5 pb-12 pt-16">
-      <Text className="text-4xl font-bold text-rizoma-primary">Rizoma</Text>
-      <Text className="mt-2 text-base text-rizoma-secondaryText">
-        Plantas premium para hogares urbanos contemporaneos.
-      </Text>
+    <ScrollView className="flex-1 bg-rizoma-canvas" contentContainerClassName="px-5 pb-12 pt-14">
+      <RizomaLogo size="lg" />
+      <Text className="mt-2 text-base text-rizoma-secondaryText">{brand.tagline}</Text>
 
       <View className="mt-6 rounded-3xl bg-white p-5">
         <Text className="text-sm font-semibold uppercase tracking-wide text-rizoma-secondaryText">
-          Coleccion de verano
+          Coleccion de temporada
         </Text>
-        <Text className="mt-1 text-2xl font-semibold text-rizoma-primary">Green Layers</Text>
+        <Text className="mt-1 text-2xl font-semibold text-rizoma-primary">Raices Urbanas</Text>
         <Text className="mt-2 text-rizoma-secondaryText">
-          Curacion editorial de plantas para espacios con alma minimal.
+          Curacion editorial de plantas premium para hogares contemporaneos.
         </Text>
         <View className="mt-4">
-          <Link href="/explore" asChild>
+          <Link href="/(tabs)/explore" asChild>
             <View>
               <RizomaButton label="Explorar catalogo" />
             </View>
@@ -47,9 +47,9 @@ export default function HomeScreen() {
             <Text className="text-center font-semibold text-rizoma-primary">Escanear planta</Text>
           </Pressable>
         </Link>
-        <Link href="/wishlist" asChild>
+        <Link href="/search" asChild>
           <Pressable className="flex-1 rounded-3xl bg-white p-4">
-            <Text className="text-center font-semibold text-rizoma-primary">Favoritos</Text>
+            <Text className="text-center font-semibold text-rizoma-primary">Buscar</Text>
           </Pressable>
         </Link>
       </View>

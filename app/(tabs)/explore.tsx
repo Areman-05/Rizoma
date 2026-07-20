@@ -18,7 +18,7 @@ export default function ExploreScreen() {
       <Text className="text-3xl font-bold text-rizoma-primary">Catalogo</Text>
       <Text className="mt-1 text-rizoma-secondaryText">Encuentra plantas por luz y estilo de vida.</Text>
 
-      <View className="mb-4 mt-4 flex-row gap-2">
+      <View className="mb-4 mt-4 flex-row flex-wrap gap-2">
         {(["all", "low", "medium", "high"] as const).map((item) => (
           <Pressable
             key={item}
@@ -41,6 +41,7 @@ export default function ExploreScreen() {
           </Link>
         )}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
       />
     </View>
   );
