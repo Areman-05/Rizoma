@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { plants } from "@/src/data/plants";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
+import { PressableScale } from "@/src/components/ui/PressableScale";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { brand } from "@/src/brand/rizoma";
 
@@ -43,14 +44,14 @@ export default function HomeScreen() {
 
       <View className="mt-8 flex-row gap-3">
         <Link href="/scan" asChild>
-          <Pressable className="flex-1 rounded-3xl bg-white p-4">
+          <PressableScale className="flex-1 rounded-3xl bg-white p-4">
             <Text className="text-center font-semibold text-rizoma-primary">Escanear planta</Text>
-          </Pressable>
+          </PressableScale>
         </Link>
         <Link href="/search" asChild>
-          <Pressable className="flex-1 rounded-3xl bg-white p-4">
+          <PressableScale className="flex-1 rounded-3xl bg-white p-4">
             <Text className="text-center font-semibold text-rizoma-primary">Buscar</Text>
-          </Pressable>
+          </PressableScale>
         </Link>
       </View>
     </ScrollView>
