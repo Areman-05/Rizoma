@@ -6,6 +6,7 @@ import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { useShop } from "@/src/store/ShopContext";
+import { useGarden } from "@/src/store/GardenContext";
 import { getRelatedPlants } from "@/src/utils/relatedPlants";
 import { elevation } from "@/src/theme/tokens";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +15,7 @@ export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const plant = getPlantById(id);
   const { addToCart, toggleWishlist, isInWishlist } = useShop();
+  const { addToGarden } = useGarden();
 
   if (!plant) {
     return (
@@ -83,8 +85,14 @@ export default function PlantDetailScreen() {
         </View>
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-rizoma-canvas px-5 pb-6 pt-3">
+      <View className="absolute bottom-0 left-0 right-0 gap-2 border-t border-rizoma-border bg-rizoma-canvas px-5 pb-6 pt-3">
         <RizomaButton label="Anadir al carrito" onPress={() => addToCart(plant)} />
+        <Pressable
+          onPress={() => addToGarden(plant)}
+          className="rounded-3xl border border-rizoma-border px-5 py-3"
+        >
+          <Text className="text-center font-medium text-rizoma-primary">Guardar en Mi Jardin</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );

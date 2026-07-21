@@ -1,4 +1,4 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { Screen } from "@/src/components/ui/Screen";
 import { EmptyState } from "@/src/components/ui/EmptyState";
@@ -18,9 +18,9 @@ export default function GardenScreen() {
       {garden.length === 0 ? (
         <EmptyState
           title="Jardin vacio"
-          description="Anade plantas desde el detalle o compra para empezar tu coleccion Rizoma."
+          description="Anade plantas desde el detalle para empezar tu coleccion Rizoma."
           actionLabel="Explorar catalogo"
-          onActionPress={() => {}}
+          onActionPress={() => router.push("/(tabs)/explore")}
         />
       ) : (
         <View className="mt-6 gap-3">
