@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import "@/src/polyfills/colorScheme";
 import { ShopProvider } from "@/src/store/ShopContext";
 import { GardenProvider } from "@/src/store/GardenContext";
 import "../global.css";
