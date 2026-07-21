@@ -1,27 +1,25 @@
-import { FlatList, Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { FlatList, Pressable, Text } from "react-native";
+import { Link, router } from "expo-router";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { useShop } from "@/src/store/ShopContext";
+import { Screen } from "@/src/components/ui/Screen";
+import { EmptyState } from "@/src/components/ui/EmptyState";
 
 export default function WishlistScreen() {
   const { wishlist } = useShop();
 
   return (
-    <View className="flex-1 bg-rizoma-canvas px-5 pt-14">
+    <Screen>
       <Text className="text-3xl font-bold text-rizoma-primary">Favoritos</Text>
       <Text className="mt-1 text-rizoma-secondaryText">Tus plantas guardadas para despues.</Text>
 
       {wishlist.length === 0 ? (
-        <View className="mt-10 rounded-3xl bg-white p-6">
-          <Text className="text-center text-rizoma-secondaryText">
-            Aun no tienes favoritos. Explora el catalogo y guarda las que te enamoren.
-          </Text>
-          <Link href="/(tabs)/explore" asChild>
-            <Pressable className="mt-4 rounded-3xl bg-rizoma-primary px-5 py-4">
-              <Text className="text-center font-semibold text-white">Ir a explorar</Text>
-            </Pressable>
-          </Link>
-        </View>
+        <EmptyState
+          title="Sin favoritos"
+          description="Explora el catalogo y guarda las plantas que te enamoren."
+          actionLabel="Ir a explorar"
+          onActionPress={() => router.push("/(tabs)/explore")}
+        />
       ) : (
         <FlatList
           data={wishlist}
@@ -37,6 +35,6 @@ export default function WishlistScreen() {
           className="mt-4"
         />
       )}
-    </View>
+    </Screen>
   );
 }

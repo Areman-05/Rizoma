@@ -1,28 +1,29 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { useShop } from "@/src/store/ShopContext";
+import { Screen } from "@/src/components/ui/Screen";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { elevation } from "@/src/theme/tokens";
 
 export default function CartScreen() {
   const { cart, cartTotal, updateQuantity, removeFromCart } = useShop();
 
   return (
-    <View className="flex-1 bg-rizoma-canvas px-5 pt-14">
+    <Screen>
       <Text className="text-3xl font-bold text-rizoma-primary">Carrito</Text>
       <Text className="mt-1 text-rizoma-secondaryText">Resumen de tu seleccion Rizoma.</Text>
 
       {cart.length === 0 ? (
-        <View className="mt-10 rounded-3xl bg-white p-6">
-          <Text className="text-center text-rizoma-secondaryText">Tu carrito esta vacio.</Text>
-          <Link href="/(tabs)/explore" asChild>
-            <Pressable className="mt-4 rounded-3xl bg-rizoma-primary px-5 py-4">
-              <Text className="text-center font-semibold text-white">Explorar plantas</Text>
-            </Pressable>
-          </Link>
-        </View>
+        <EmptyState
+          title="Carrito vacio"
+          description="Anade plantas desde el catalogo o desde sus fichas de producto."
+          actionLabel="Explorar plantas"
+          onActionPress={() => router.push("/(tabs)/explore")}
+        />
       ) : (
         <>
-          <View className="mt-5 gap-3 rounded-3xl bg-white p-5">
+          <View className="mt-5 gap-3 rounded-3xl bg-white p-5" style={elevation.soft}>
             {cart.map((line) => (
               <View key={line.plant.id} className="gap-2 border-b border-rizoma-border pb-3">
                 <View className="flex-row items-center justify-between">
@@ -65,6 +66,6 @@ export default function CartScreen() {
           </View>
         </>
       )}
-    </View>
+    </Screen>
   );
 }
