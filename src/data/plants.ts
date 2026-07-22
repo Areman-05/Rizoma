@@ -11,7 +11,14 @@ const imagePool = [
   "https://images.unsplash.com/photo-1459156212016-c812478e3838?w=800",
 ];
 
-const catalogSeed: Array<Omit<Plant, "image"> & { imageIndex: number }> = [
+const catalogSeed: Array<
+  Omit<Plant, "image" | "rating" | "reviewCount" | "originalPrice" | "salePercent"> & {
+    imageIndex: number;
+    rating?: number;
+    reviewCount?: number;
+    originalPrice?: number;
+  }
+> = [
   {
     id: "monstera-deliciosa",
     name: "Monstera Deliciosa",
@@ -387,19 +394,34 @@ const catalogSeed: Array<Omit<Plant, "image"> & { imageIndex: number }> = [
   },
 ];
 
-export const plants: Plant[] = catalogSeed.map((item) => ({
-  id: item.id,
-  name: item.name,
-  latinName: item.latinName,
-  price: item.price,
-  image: imagePool[item.imageIndex % imagePool.length],
-  light: item.light,
-  watering: item.watering,
-  petFriendly: item.petFriendly,
-  difficulty: item.difficulty,
-  description: item.description,
-  badge: item.badge,
-}));
+export const plants: Plant[] = catalogSeed.map((item, index) => {
+  const originalPrice =
+    item.originalPrice ?? (index % 3 === 0 ? Number((item.price * 1.35).toFixed(2)) : undefined);
+  const rating = item.rating ?? Number((4.5 + (index % 5) * 0.1).toFixed(1));
+  const reviewCount = item.reviewCount ?? 180 + index * 23;
+  const salePercent =
+    originalPrice && originalPrice > item.price
+      ? Math.round(((originalPrice - item.price) / originalPrice) * 100)
+      : undefined;
+
+  return {
+    id: item.id,
+    name: item.name,
+    latinName: item.latinName,
+    price: item.price,
+    originalPrice,
+    rating,
+    reviewCount,
+    salePercent,
+    image: imagePool[item.imageIndex % imagePool.length],
+    light: item.light,
+    watering: item.watering,
+    petFriendly: item.petFriendly,
+    difficulty: item.difficulty,
+    description: item.description,
+    badge: item.badge,
+  };
+});
 
 export function getPlantById(id: string) {
   return plants.find((plant) => plant.id === id);
