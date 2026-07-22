@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { Image, Text, View } from "react-native";
 import { Link } from "expo-router";
-import { Camera, Sparkles } from "lucide-react-native";
-import { Pressable, Text, View } from "react-native";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
+import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { runPlantScan, ScanMatch } from "@/src/services/scanPlant";
-import { elevation } from "@/src/theme/tokens";
+import { colors } from "@/src/theme/tokens";
 
 export default function ScanScreen() {
   const [matches, setMatches] = useState<ScanMatch[] | null>(null);
@@ -19,44 +19,56 @@ export default function ScanScreen() {
     }, 700);
   };
 
+  const top = matches?.[0];
+
   return (
     <Screen scroll>
-      <Text className="text-3xl font-bold text-rizoma-primary">Escaneo Rizoma</Text>
-      <Text className="mt-2 leading-6 text-rizoma-secondaryText">
-        Orientativo: devolvemos top-3 coincidencias con nivel de confianza. Verifica siempre antes de decisiones
-        criticas.
+      <ScreenHeader title="Escanear" />
+      <Text className="text-sm leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+        Encuadramos la planta y devolvemos top-3 con nivel de confianza. Orientativo, no diagnostico absoluto.
       </Text>
 
-      <View
-        className="mt-8 items-center rounded-3xl border border-dashed border-rizoma-border bg-white px-5 py-10"
-        style={elevation.soft}
-      >
-        <Camera size={36} color="#1E3B2B" />
-        <Text className="mt-3 text-rizoma-primary">
-          {scanning ? "Analizando hoja y porte..." : "Camara lista para identificar"}
-        </Text>
+      <View className="mt-6 overflow-hidden rounded-3xl bg-black">
+        <Image
+          source={{ uri: "https://images.unsplash.com/photo-1593691509543-c55fb32e5b14?w=1000" }}
+          className="h-96 w-full opacity-90"
+          resizeMode="cover"
+        />
+        <View className="absolute inset-0 items-center justify-center">
+          <View className="h-56 w-56 border-2 border-white/90" style={{ borderRadius: 8 }} />
+        </View>
+
+        {top ? (
+          <View className="absolute bottom-4 left-4 right-4 flex-row items-center gap-3 rounded-3xl bg-white p-3">
+            <Image source={{ uri: top.plant.image }} className="h-14 w-14 rounded-2xl bg-rizoma-gray" />
+            <View className="flex-1">
+              <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                {top.plant.latinName}
+              </Text>
+              <Text className="text-xs text-rizoma-secondaryText" numberOfLines={2}>
+                Confianza {top.level} · {top.reason}
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </View>
 
-      <View className="mt-6">
-        <RizomaButton label={scanning ? "Escaneando..." : "Iniciar escaneo"} onPress={onScan} />
+      <View className="mt-5">
+        <RizomaButton label={scanning ? "Escaneando..." : "Identificar planta"} onPress={onScan} />
       </View>
 
       {matches ? (
-        <View className="mt-6 rounded-3xl bg-white p-5" style={elevation.soft}>
-          <View className="mb-3 flex-row items-center gap-2">
-            <Sparkles size={16} color="#1E3B2B" />
-            <Text className="font-semibold text-rizoma-primary">Top 3 resultados</Text>
-          </View>
+        <View className="mt-5 gap-2">
           {matches.map((match, index) => (
             <Link key={match.plant.id} href={`/plants/${match.plant.id}`} asChild>
-              <Pressable className="mb-3 rounded-2xl bg-rizoma-canvas px-3 py-3">
-                <Text className="font-semibold text-rizoma-primary">
+              <View className="rounded-3xl border border-rizoma-border bg-white px-4 py-3">
+                <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.black }}>
                   {index + 1}. {match.plant.name}
                 </Text>
                 <Text className="text-sm text-rizoma-secondaryText">
-                  Confianza {match.level} ({Math.round(match.confidence * 100)}%) · {match.reason}
+                  {Math.round(match.confidence * 100)}% · {match.level}
                 </Text>
-              </Pressable>
+              </View>
             </Link>
           ))}
         </View>
