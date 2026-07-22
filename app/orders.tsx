@@ -1,36 +1,70 @@
-import { Link } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
+import { Package, MapPin, Truck } from "lucide-react-native";
+import { Screen } from "@/src/components/ui/Screen";
+import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
+import { RizomaButton } from "@/src/components/ui/RizomaButton";
+import { colors } from "@/src/theme/tokens";
+import { plants } from "@/src/data/plants";
 
-const demoOrders = [
-  { id: "RZ-1042", status: "Preparando", total: "128.80 EUR", date: "20 Jul 2026" },
-  { id: "RZ-1031", status: "Enviado", total: "64.40 EUR", date: "12 Jul 2026" },
-  { id: "RZ-1018", status: "Entregado", total: "49.90 EUR", date: "28 Jun 2026" },
+const steps = [
+  { title: "Pedido recibido", time: "Hoy, 09:20", done: true, latest: false },
+  { title: "En camino", time: "Hoy, 11:05", done: true, latest: true },
+  { title: "Entregado", time: "Pendiente", done: false, latest: false },
 ];
 
 export default function OrdersScreen() {
-  return (
-    <View className="flex-1 bg-rizoma-canvas px-5 pt-14">
-      <Text className="text-3xl font-bold text-rizoma-primary">Pedidos</Text>
-      <Text className="mt-1 text-rizoma-secondaryText">Historial y estado de tus compras Rizoma.</Text>
+  const plant = plants[0];
 
-      <View className="mt-6 gap-3">
-        {demoOrders.map((order) => (
-          <View key={order.id} className="rounded-3xl bg-white p-5">
-            <View className="flex-row items-center justify-between">
-              <Text className="font-semibold text-rizoma-primary">{order.id}</Text>
-              <Text className="text-sm text-rizoma-accent">{order.status}</Text>
+  return (
+    <Screen scroll>
+      <ScreenHeader title="Pedidos" />
+
+      <View className="flex-row items-center gap-3 rounded-3xl bg-rizoma-gray p-3">
+        <Image source={{ uri: plant.image }} className="h-16 w-16 rounded-2xl bg-white" />
+        <View className="flex-1">
+          <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            {plant.name}
+          </Text>
+          <Text className="text-sm text-rizoma-secondaryText">Qty - 1 · {plant.price.toFixed(2)} EUR</Text>
+        </View>
+      </View>
+
+      <View className="mt-6 flex-row items-center justify-between px-4">
+        <Package size={22} color={colors.brand} />
+        <View className="mx-2 h-1 flex-1 rounded-full bg-rizoma-brand" />
+        <Truck size={22} color={colors.brand} />
+        <View className="mx-2 h-1 flex-1 rounded-full bg-rizoma-gray" />
+        <MapPin size={22} color={colors.grayText} />
+      </View>
+
+      <View className="mt-6 gap-4">
+        {steps.map((step) => (
+          <View key={step.title} className="flex-row gap-3">
+            <View
+              className={`mt-1 h-4 w-4 rounded-full ${step.done ? "bg-rizoma-brand" : "border border-rizoma-border bg-white"}`}
+            />
+            <View className="flex-1">
+              <View className="flex-row items-center gap-2">
+                <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                  {step.title}
+                </Text>
+                {step.latest ? (
+                  <View className="rounded-full bg-rizoma-yellow px-2 py-0.5">
+                    <Text className="text-[10px] text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
+                      Latest
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text className="text-xs text-rizoma-secondaryText">{step.time}</Text>
             </View>
-            <Text className="mt-2 text-rizoma-secondaryText">{order.date}</Text>
-            <Text className="mt-1 text-rizoma-primary">{order.total}</Text>
           </View>
         ))}
       </View>
 
-      <Link href="/(tabs)/profile" asChild>
-        <Pressable className="mt-6 rounded-3xl border border-rizoma-border px-5 py-4">
-          <Text className="text-center font-medium text-rizoma-primary">Volver al perfil</Text>
-        </Pressable>
-      </Link>
-    </View>
+      <View className="mt-8">
+        <RizomaButton label="Cancelar entrega" variant="primary" onPress={() => {}} />
+      </View>
+    </Screen>
   );
 }
