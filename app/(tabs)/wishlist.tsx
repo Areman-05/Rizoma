@@ -1,38 +1,48 @@
-import { FlatList, Pressable, Text } from "react-native";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { useShop } from "@/src/store/ShopContext";
 import { Screen } from "@/src/components/ui/Screen";
+import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 
 export default function WishlistScreen() {
-  const { wishlist } = useShop();
+  const { wishlist, toggleWishlist, isInWishlist } = useShop();
 
   return (
     <Screen>
-      <Text className="text-3xl font-bold text-rizoma-primary">Favoritos</Text>
-      <Text className="mt-1 text-rizoma-secondaryText">Tus plantas guardadas para despues.</Text>
+      <ScreenHeader title="Wishlist" showBack={false} />
+      <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+        Tus plantas guardadas para despues.
+      </Text>
 
       {wishlist.length === 0 ? (
         <EmptyState
-          title="Sin favoritos"
+          title="Wishlist vacia"
           description="Explora el catalogo y guarda las plantas que te enamoren."
-          actionLabel="Ir a explorar"
-          onActionPress={() => router.push("/(tabs)/explore")}
+          actionLabel="Ir a inicio"
+          onActionPress={() => router.push("/(tabs)")}
         />
       ) : (
         <FlatList
           data={wishlist}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Link href={`/plants/${item.id}`} asChild>
-              <Pressable>
-                <PlantCard plant={item} />
-              </Pressable>
-            </Link>
-          )}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12 }}
           showsVerticalScrollIndicator={false}
-          className="mt-4"
+          renderItem={({ item }) => (
+            <View className="flex-1">
+              <Link href={`/plants/${item.id}`} asChild>
+                <Pressable>
+                  <PlantCard
+                    plant={item}
+                    wishlisted={isInWishlist(item.id)}
+                    onToggleWishlist={() => toggleWishlist(item)}
+                  />
+                </Pressable>
+              </Link>
+            </View>
+          )}
         />
       )}
     </Screen>
