@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
-import { Heart, Home, ShoppingBag, Store, User } from "lucide-react-native";
-import { brand } from "@/src/brand/rizoma";
+import { Heart, Home, MessageCircle, ShoppingBag, User } from "lucide-react-native";
+import { View } from "react-native";
+import { colors } from "@/src/theme/tokens";
 import { useShop } from "@/src/store/ShopContext";
 
 export default function TabsLayout() {
@@ -10,18 +11,18 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: brand.colors.primary,
-        tabBarInactiveTintColor: brand.colors.secondaryText,
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: "#6B7280",
         tabBarStyle: {
-          backgroundColor: brand.colors.card,
-          borderTopColor: brand.colors.border,
-          height: 64,
-          paddingBottom: 8,
+          backgroundColor: colors.white,
+          borderTopColor: colors.border,
+          height: 68,
+          paddingBottom: 10,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: "600",
+          fontFamily: "Inter_500Medium",
         },
       }}
     >
@@ -29,21 +30,12 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Inicio",
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explorar",
-          tabBarIcon: ({ color, size }) => <Store color={color} size={size} />,
-        }}
-      />
-      <Tabs.Screen
-        name="wishlist"
-        options={{
-          title: "Favoritos",
-          tabBarIcon: ({ color, size }) => <Heart color={color} size={size} />,
+          tabBarIcon: ({ color, focused, size }) => (
+            <View className="items-center">
+              <Home color={color} size={size} fill={focused ? color : "transparent"} />
+              {focused ? <View className="mt-1 h-1 w-1 rounded-full bg-rizoma-brand" /> : null}
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -51,7 +43,24 @@ export default function TabsLayout() {
         options={{
           title: "Carrito",
           tabBarBadge: cartCount > 0 ? cartCount : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.brand },
           tabBarIcon: ({ color, size }) => <ShoppingBag color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="wishlist"
+        options={{
+          title: "Wishlist",
+          tabBarIcon: ({ color, focused, size }) => (
+            <Heart color={color} size={size} fill={focused ? color : "transparent"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          tabBarIcon: ({ color, size }) => <MessageCircle color={color} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -61,6 +70,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
+      <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>
   );
 }
