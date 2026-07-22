@@ -11,10 +11,10 @@ interface ScreenProps {
 export function Screen({ children, scroll = false, className = "" }: ScreenProps) {
   if (scroll) {
     return (
-      <SafeAreaView className="flex-1 bg-rizoma-canvas" edges={["top", "left", "right"]}>
+      <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
         <ScrollView
-          className={`flex-1 bg-rizoma-canvas ${className}`}
-          contentContainerClassName="px-5 pb-10 pt-2"
+          className={`flex-1 bg-white ${className}`}
+          contentContainerClassName="px-[13px] pb-10 pt-2"
           showsVerticalScrollIndicator={false}
         >
           {children}
@@ -24,8 +24,8 @@ export function Screen({ children, scroll = false, className = "" }: ScreenProps
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-rizoma-canvas" edges={["top", "left", "right"]}>
-      <View className={`flex-1 bg-rizoma-canvas px-5 pt-2 ${className}`}>{children}</View>
+    <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
+      <View className={`flex-1 bg-white px-[13px] pt-2 ${className}`}>{children}</View>
     </SafeAreaView>
   );
 }
