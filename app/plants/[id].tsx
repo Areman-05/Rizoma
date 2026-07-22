@@ -1,26 +1,30 @@
-import { Link, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
-import { Heart } from "lucide-react-native";
+import { useLocalSearchParams, router } from "expo-router";
+import { Heart, Star } from "lucide-react-native";
 import { getPlantById } from "@/src/data/plants";
 import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
-import { SectionHeader } from "@/src/components/ui/SectionHeader";
+import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
 import { useShop } from "@/src/store/ShopContext";
 import { useGarden } from "@/src/store/GardenContext";
 import { getRelatedPlants } from "@/src/utils/relatedPlants";
-import { elevation } from "@/src/theme/tokens";
+import { formatPrice } from "@/src/utils/pricing";
+import { colors } from "@/src/theme/tokens";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ChevronLeft } from "lucide-react-native";
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const plant = getPlantById(id);
   const { addToCart, toggleWishlist, isInWishlist } = useShop();
   const { addToGarden } = useGarden();
+  const [qty, setQty] = useState(1);
 
   if (!plant) {
     return (
-      <View className="flex-1 items-center justify-center bg-rizoma-canvas">
-        <Text className="text-rizoma-primary">Planta no encontrada.</Text>
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-rizoma-black">Planta no encontrada.</Text>
       </View>
     );
   }
@@ -29,69 +33,96 @@ export default function PlantDetailScreen() {
   const related = getRelatedPlants(plant);
 
   return (
-    <SafeAreaView className="flex-1 bg-rizoma-canvas" edges={["top", "left", "right"]}>
-      <ScrollView className="flex-1" contentContainerClassName="px-5 pb-28 pt-2" showsVerticalScrollIndicator={false}>
-        <View className="overflow-visible rounded-3xl bg-white px-4 pb-2 pt-2" style={elevation.soft}>
-          <Image
-            source={{ uri: plant.image }}
-            className="h-72 w-full"
-            resizeMode="contain"
-            style={{ marginTop: -18, ...elevation.pop }}
-          />
+    <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
+      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-36" showsVerticalScrollIndicator={false}>
+        <View className="mt-2 flex-row items-center justify-between">
+          <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
+            <ChevronLeft size={20} color={colors.black} />
+          </CircularIconButton>
+          <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
+            <Heart size={18} color={saved ? colors.brand : colors.black} fill={saved ? colors.brand : "transparent"} />
+          </CircularIconButton>
         </View>
 
-        <View className="mt-4 flex-row items-start justify-between">
-          <View className="flex-1 pr-3">
-            {plant.badge ? (
-              <Text className="mb-1 text-xs font-semibold uppercase tracking-wide text-rizoma-secondaryText">
-                {plant.badge}
-              </Text>
-            ) : null}
-            <Text className="text-3xl font-bold text-rizoma-primary">{plant.name}</Text>
-            <Text className="text-base italic text-rizoma-secondaryText">{plant.latinName}</Text>
-          </View>
-          <Pressable
-            onPress={() => toggleWishlist(plant)}
-            className="rounded-full bg-white p-3"
-            accessibilityLabel="Toggle wishlist"
-            style={elevation.soft}
-          >
-            <Heart size={22} color="#1E3B2B" fill={saved ? "#1E3B2B" : "transparent"} />
-          </Pressable>
+        <View className="mt-4 items-center rounded-3xl bg-rizoma-gray px-4 py-6">
+          <Image source={{ uri: plant.image }} className="h-72 w-full" resizeMode="contain" />
         </View>
 
-        <Text className="mt-3 text-2xl font-semibold text-rizoma-primary">{plant.price.toFixed(2)} EUR</Text>
+        <Text className="mt-5 text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+          {plant.name}
+        </Text>
+        <Text className="mt-1 text-sm italic text-rizoma-secondaryText">{plant.latinName}</Text>
+
+        <View className="mt-2 flex-row items-center gap-1">
+          <Star size={14} color={colors.yellow} fill={colors.yellow} />
+          <Text className="text-sm text-rizoma-secondaryText">
+            {plant.rating.toFixed(1)} ({plant.reviewCount})
+          </Text>
+        </View>
+
+        <View className="mt-3 flex-row items-center gap-2">
+          <Text className="text-xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            {formatPrice(plant.price)}
+          </Text>
+          {plant.originalPrice && plant.originalPrice > plant.price ? (
+            <Text className="text-base text-rizoma-red line-through">{formatPrice(plant.originalPrice)}</Text>
+          ) : null}
+        </View>
+
         <PlantIndicators light={plant.light} watering={plant.watering} petFriendly={plant.petFriendly} />
 
-        <View className="mt-6 rounded-3xl bg-white p-5" style={elevation.soft}>
-          <Text className="text-lg font-semibold text-rizoma-primary">Descripcion</Text>
-          <Text className="mt-2 leading-6 text-rizoma-secondaryText">{plant.description}</Text>
-          <Text className="mt-3 text-sm text-rizoma-secondaryText">Dificultad: {plant.difficulty}</Text>
-        </View>
+        <Text className="mt-6 text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+          Descripcion
+        </Text>
+        <Text className="mt-2 leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+          {plant.description}
+        </Text>
 
-        <View className="mt-8">
-          <SectionHeader title="Tambien te pueden gustar" subtitle="Afinidad por luz y estilo de vida" />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {related.map((item) => (
-              <Link key={item.id} href={`/plants/${item.id}`} asChild>
-                <Pressable className="mr-3 w-40 rounded-3xl bg-white p-3" style={elevation.soft}>
-                  <Image source={{ uri: item.image }} className="h-24 w-full rounded-2xl" resizeMode="cover" />
-                  <Text className="mt-2 font-semibold text-rizoma-primary">{item.name}</Text>
-                  <Text className="text-sm text-rizoma-secondaryText">{item.price.toFixed(2)} EUR</Text>
-                </Pressable>
-              </Link>
-            ))}
-          </ScrollView>
-        </View>
+        <Text className="mb-3 mt-8 text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+          Relacionadas
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {related.map((item) => (
+            <Pressable
+              key={item.id}
+              onPress={() => router.push(`/plants/${item.id}`)}
+              className="mr-3 w-36 rounded-3xl bg-rizoma-gray p-3"
+            >
+              <Image source={{ uri: item.image }} className="h-24 w-full" resizeMode="contain" />
+              <Text className="mt-2 text-sm text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }} numberOfLines={1}>
+                {item.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 gap-2 border-t border-rizoma-border bg-rizoma-canvas px-5 pb-6 pt-3">
-        <RizomaButton label="Anadir al carrito" onPress={() => addToCart(plant)} />
-        <Pressable
-          onPress={() => addToGarden(plant)}
-          className="rounded-3xl border border-rizoma-border px-5 py-3"
-        >
-          <Text className="text-center font-medium text-rizoma-primary">Guardar en Mi Jardin</Text>
+      <View className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-4 pb-6 pt-3">
+        <View className="mb-3 flex-row items-center justify-between">
+          <Text className="text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
+            Comprar
+          </Text>
+          <View className="flex-row items-center gap-3">
+            <Pressable onPress={() => setQty((q) => Math.max(1, q - 1))} className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray">
+              <Text>-</Text>
+            </Pressable>
+            <Text style={{ fontFamily: "Inter_700Bold" }}>{qty}</Text>
+            <Pressable onPress={() => setQty((q) => q + 1)} className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray">
+              <Text>+</Text>
+            </Pressable>
+          </View>
+        </View>
+        <RizomaButton
+          label="Comprar ahora"
+          onPress={() => {
+            for (let i = 0; i < qty; i += 1) addToCart(plant);
+            router.push("/(tabs)/cart");
+          }}
+        />
+        <Pressable onPress={() => addToGarden(plant)} className="mt-2 py-2">
+          <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+            Guardar en Mi Jardin
+          </Text>
         </Pressable>
       </View>
     </SafeAreaView>
