@@ -1,5 +1,6 @@
 import { Droplets, Sun, PawPrint } from "lucide-react-native";
 import { Text, View } from "react-native";
+import { colors } from "@/src/theme/tokens";
 
 interface PlantIndicatorsProps {
   light: string;
@@ -9,18 +10,24 @@ interface PlantIndicatorsProps {
 
 export function PlantIndicators({ light, watering, petFriendly }: PlantIndicatorsProps) {
   return (
-    <View className="mt-2 flex-row gap-3">
-      <View className="flex-row items-center gap-1 rounded-2xl bg-rizoma-canvas px-2 py-1">
-        <Sun size={14} color="#1E3B2B" />
-        <Text className="text-xs text-rizoma-primary">{light}</Text>
+    <View className="mt-3 flex-row flex-wrap gap-2">
+      <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
+        <Sun size={14} color={colors.brand} />
+        <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+          {light}
+        </Text>
       </View>
-      <View className="flex-row items-center gap-1 rounded-2xl bg-rizoma-canvas px-2 py-1">
-        <Droplets size={14} color="#1E3B2B" />
-        <Text className="text-xs text-rizoma-primary">{watering}</Text>
+      <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
+        <Droplets size={14} color={colors.brand} />
+        <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+          {watering}
+        </Text>
       </View>
-      <View className="flex-row items-center gap-1 rounded-2xl bg-rizoma-canvas px-2 py-1">
-        <PawPrint size={14} color="#1E3B2B" />
-        <Text className="text-xs text-rizoma-primary">{petFriendly ? "Pet-safe" : "No pets"}</Text>
+      <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
+        <PawPrint size={14} color={colors.brand} />
+        <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+          {petFriendly ? "Pet-safe" : "No pets"}
+        </Text>
       </View>
     </View>
   );
