@@ -7,6 +7,9 @@ export interface Plant {
   name: string;
   latinName: string;
   price: number;
+  originalPrice?: number;
+  rating: number;
+  reviewCount: number;
   image: string;
   light: PlantLight;
   watering: string;
@@ -14,4 +17,5 @@ export interface Plant {
   difficulty: PlantDifficulty;
   description: string;
   badge?: string;
+  salePercent?: number;
 }
