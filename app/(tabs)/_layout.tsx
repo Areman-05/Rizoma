@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+﻿import { Tabs } from "expo-router";
 import { Heart, Home, MessageCircle, ShoppingBag, User } from "lucide-react-native";
 import { View } from "react-native";
 import { colors } from "@/src/theme/tokens";
@@ -50,7 +50,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="wishlist"
         options={{
-          title: "Wishlist",
+          title: "Favoritos",
           tabBarIcon: ({ color, focused, size }) => (
             <Heart color={color} size={size} fill={focused ? color : "transparent"} />
           ),
