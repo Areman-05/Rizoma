@@ -1,6 +1,7 @@
 import { Link, router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Screen } from "@/src/components/ui/Screen";
+import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { useGarden } from "@/src/store/GardenContext";
 import { elevation } from "@/src/theme/tokens";
@@ -10,8 +11,8 @@ export default function GardenScreen() {
 
   return (
     <Screen scroll>
-      <Text className="text-3xl font-bold text-rizoma-primary">Mi Jardin</Text>
-      <Text className="mt-2 text-rizoma-secondaryText">
+      <ScreenHeader title="Mi Jardin" />
+      <Text className="text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
         Tu coleccion personal y recordatorios suaves de riego.
       </Text>
 
@@ -25,29 +26,45 @@ export default function GardenScreen() {
       ) : (
         <View className="mt-6 gap-3">
           {garden.map((item) => (
-            <View key={item.plant.id} className="rounded-3xl bg-white p-4" style={elevation.soft}>
-              <Text className="text-lg font-semibold text-rizoma-primary">
-                {item.nickname ?? item.plant.name}
-              </Text>
-              <Text className="text-sm text-rizoma-secondaryText">{item.plant.latinName}</Text>
-              <Text className="mt-2 text-sm text-rizoma-secondaryText">
-                Ultimo riego: {item.wateredAt ? new Date(item.wateredAt).toLocaleDateString() : "—"}
-              </Text>
-              <View className="mt-3 flex-row gap-3">
-                <Pressable
-                  onPress={() => markWatered(item.plant.id)}
-                  className="rounded-2xl bg-rizoma-primary px-3 py-2"
-                >
-                  <Text className="text-sm font-semibold text-white">Regada</Text>
-                </Pressable>
-                <Pressable onPress={() => removeFromGarden(item.plant.id)} className="rounded-2xl bg-rizoma-canvas px-3 py-2">
-                  <Text className="text-sm text-rizoma-primary">Quitar</Text>
-                </Pressable>
-                <Link href={`/plants/${item.plant.id}`} asChild>
-                  <Pressable className="rounded-2xl bg-rizoma-canvas px-3 py-2">
-                    <Text className="text-sm text-rizoma-primary">Ver ficha</Text>
+            <View key={item.plant.id} className="flex-row gap-3 rounded-3xl bg-white p-4" style={elevation.soft}>
+              <Image source={{ uri: item.plant.image }} className="h-16 w-16 rounded-2xl bg-rizoma-gray" />
+              <View className="flex-1">
+                <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                  {item.nickname ?? item.plant.name}
+                </Text>
+                <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+                  {item.plant.latinName}
+                </Text>
+                <Text className="mt-2 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+                  Ultimo riego: {item.wateredAt ? new Date(item.wateredAt).toLocaleDateString() : "—"}
+                </Text>
+                <View className="mt-3 flex-row gap-3">
+                  <Pressable
+                    accessibilityLabel="Marcar como regada"
+                    onPress={() => markWatered(item.plant.id)}
+                    className="rounded-2xl bg-rizoma-brand px-3 py-2"
+                  >
+                    <Text className="text-sm text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+                      Regada
+                    </Text>
                   </Pressable>
-                </Link>
+                  <Pressable
+                    accessibilityLabel="Quitar del jardin"
+                    onPress={() => removeFromGarden(item.plant.id)}
+                    className="rounded-2xl bg-rizoma-gray px-3 py-2"
+                  >
+                    <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+                      Quitar
+                    </Text>
+                  </Pressable>
+                  <Link href={`/plants/${item.plant.id}`} asChild>
+                    <Pressable className="rounded-2xl bg-rizoma-gray px-3 py-2">
+                      <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+                        Ver ficha
+                      </Text>
+                    </Pressable>
+                  </Link>
+                </View>
               </View>
             </View>
           ))}
