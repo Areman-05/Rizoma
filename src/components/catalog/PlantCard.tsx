@@ -12,8 +12,15 @@ interface PlantCardProps {
   compact?: boolean;
 }
 
-export function PlantCard({ plant, onPress, onToggleWishlist, wishlisted = false }: PlantCardProps) {
+export function PlantCard({
+  plant,
+  onPress,
+  onToggleWishlist,
+  wishlisted = false,
+  compact = false,
+}: PlantCardProps) {
   const percent = plant.salePercent ?? salePercent(plant.price, plant.originalPrice);
+  const imageHeight = compact ? "h-28" : "h-40";
 
   return (
     <Pressable onPress={onPress} className="mb-4 flex-1">
@@ -22,6 +29,13 @@ export function PlantCard({ plant, onPress, onToggleWishlist, wishlisted = false
           <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-red px-2 py-1">
             <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
               {percent}% off
+            </Text>
+          </View>
+        ) : null}
+        {plant.badge && !percent ? (
+          <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-brand px-2 py-1">
+            <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+              {plant.badge}
             </Text>
           </View>
         ) : null}
@@ -36,7 +50,7 @@ export function PlantCard({ plant, onPress, onToggleWishlist, wishlisted = false
             fill={wishlisted ? colors.brand : "transparent"}
           />
         </Pressable>
-        <Image source={{ uri: plant.image }} className="h-40 w-full" resizeMode="contain" />
+        <Image source={{ uri: plant.image }} className={`${imageHeight} w-full`} resizeMode="contain" />
       </View>
 
       <View className="mt-2 flex-row items-center gap-1">
@@ -45,7 +59,11 @@ export function PlantCard({ plant, onPress, onToggleWishlist, wishlisted = false
           {plant.rating.toFixed(1)} ({plant.reviewCount})
         </Text>
       </View>
-      <Text className="mt-1 text-base text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }} numberOfLines={1}>
+      <Text
+        className={`mt-1 text-rizoma-black ${compact ? "text-sm" : "text-base"}`}
+        style={{ fontFamily: "Inter_700Bold" }}
+        numberOfLines={1}
+      >
         {plant.name}
       </Text>
       <View className="mt-1 flex-row items-center gap-2">
