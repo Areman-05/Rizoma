@@ -7,8 +7,13 @@ import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { formatPrice } from "@/src/utils/pricing";
 
+const FREE_SHIPPING_FROM = 40;
+const STANDARD_SHIPPING = 4.9;
+
 export default function CartScreen() {
   const { cart, cartTotal, updateQuantity, removeFromCart } = useShop();
+  const shipping = cartTotal >= FREE_SHIPPING_FROM || cartTotal === 0 ? 0 : STANDARD_SHIPPING;
+  const payable = cartTotal + shipping;
 
   return (
     <Screen scroll>
@@ -36,6 +41,7 @@ export default function CartScreen() {
                   </Text>
                   <View className="mt-2 flex-row items-center gap-3">
                     <Pressable
+                      accessibilityLabel="Reducir cantidad"
                       onPress={() => updateQuantity(line.plant.id, line.quantity - 1)}
                       className="h-8 w-8 items-center justify-center rounded-full bg-white"
                     >
@@ -43,12 +49,16 @@ export default function CartScreen() {
                     </Pressable>
                     <Text style={{ fontFamily: "Inter_600SemiBold" }}>{line.quantity}</Text>
                     <Pressable
+                      accessibilityLabel="Aumentar cantidad"
                       onPress={() => updateQuantity(line.plant.id, line.quantity + 1)}
                       className="h-8 w-8 items-center justify-center rounded-full bg-white"
                     >
                       <Text>+</Text>
                     </Pressable>
-                    <Pressable onPress={() => removeFromCart(line.plant.id)}>
+                    <Pressable
+                      accessibilityLabel="Eliminar del carrito"
+                      onPress={() => removeFromCart(line.plant.id)}
+                    >
                       <Text className="text-sm text-rizoma-red">Eliminar</Text>
                     </Pressable>
                   </View>
@@ -57,10 +67,34 @@ export default function CartScreen() {
             ))}
           </View>
 
-          <View className="mt-5 rounded-3xl bg-white p-4 border border-rizoma-border">
-            <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              Total: {formatPrice(cartTotal)}
-            </Text>
+          <View className="mt-5 rounded-3xl border border-rizoma-border bg-white p-4">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+                Subtotal
+              </Text>
+              <Text style={{ fontFamily: "Inter_600SemiBold" }}>{formatPrice(cartTotal)}</Text>
+            </View>
+            <View className="mt-2 flex-row items-center justify-between">
+              <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+                Envio
+              </Text>
+              <Text style={{ fontFamily: "Inter_600SemiBold" }}>
+                {shipping === 0 ? "Gratis" : formatPrice(shipping)}
+              </Text>
+            </View>
+            {cartTotal < FREE_SHIPPING_FROM ? (
+              <Text className="mt-2 text-xs text-rizoma-brand" style={{ fontFamily: "Inter_500Medium" }}>
+                Te faltan {formatPrice(FREE_SHIPPING_FROM - cartTotal)} para envio gratis
+              </Text>
+            ) : null}
+            <View className="mt-3 flex-row items-center justify-between border-t border-rizoma-border pt-3">
+              <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                Total
+              </Text>
+              <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                {formatPrice(payable)}
+              </Text>
+            </View>
           </View>
 
           <View className="mt-6">
