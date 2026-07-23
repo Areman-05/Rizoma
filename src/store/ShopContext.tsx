@@ -1,6 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Plant } from "@/src/types/catalog";
-import { loadShopState, saveCart, saveWishlist } from "@/src/store/persistence";
+import { Order } from "@/src/types/orders";
+import { loadOrders, loadShopState, saveCart, saveOrders, saveWishlist } from "@/src/store/persistence";
 
 export interface CartLine {
   plant: Plant;
@@ -10,6 +11,7 @@ export interface CartLine {
 interface ShopContextValue {
   cart: CartLine[];
   wishlist: Plant[];
+  orders: Order[];
   cartCount: number;
   cartTotal: number;
   hydrated: boolean;
@@ -19,6 +21,7 @@ interface ShopContextValue {
   toggleWishlist: (plant: Plant) => void;
   isInWishlist: (plantId: string) => boolean;
   clearCart: () => void;
+  placeOrder: (order: Order) => void;
 }
 
 const ShopContext = createContext<ShopContextValue | null>(null);
@@ -26,12 +29,14 @@ const ShopContext = createContext<ShopContextValue | null>(null);
 export function ShopProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<Plant[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    loadShopState().then((state) => {
+    Promise.all([loadShopState(), loadOrders()]).then(([state, savedOrders]) => {
       setCart(state.cart);
       setWishlist(state.wishlist);
+      setOrders(savedOrders);
       setHydrated(true);
     });
   }, []);
@@ -46,6 +51,11 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     void saveWishlist(wishlist);
   }, [wishlist, hydrated]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    void saveOrders(orders);
+  }, [orders, hydrated]);
+
   const value = useMemo<ShopContextValue>(() => {
     const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
     const cartTotal = cart.reduce((sum, line) => sum + line.plant.price * line.quantity, 0);
@@ -53,6 +63,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     return {
       cart,
       wishlist,
+      orders,
       cartCount,
       cartTotal,
       hydrated,
@@ -85,8 +96,12 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       },
       isInWishlist: (plantId) => wishlist.some((item) => item.id === plantId),
       clearCart: () => setCart([]),
+      placeOrder: (order) => {
+        setOrders((prev) => [order, ...prev]);
+        setCart([]);
+      },
     };
-  }, [cart, wishlist, hydrated]);
+  }, [cart, wishlist, orders, hydrated]);
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
 }
