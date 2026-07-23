@@ -1,5 +1,6 @@
 import { Link } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
 import { Bell, ChevronRight, HelpCircle, Leaf, ScanLine, Settings, Shield } from "lucide-react-native";
 import { Screen } from "@/src/components/ui/Screen";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
@@ -21,20 +22,48 @@ const links: { href: Href; label: string; icon: typeof Settings }[] = [
 export default function ProfileScreen() {
   const { cartCount, wishlist } = useShop();
   const { garden } = useGarden();
+  const [name, setName] = useState("Amante de plantas");
+  const [editing, setEditing] = useState(false);
 
   return (
     <Screen scroll>
       <RizomaLogo size="md" />
-      <Text className="mt-5 text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-        Perfil
-      </Text>
-      <Text className="mt-1 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+
+      <View className="mt-5 flex-row items-center gap-4">
+        <Image
+          source={{ uri: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=160" }}
+          className="h-16 w-16 rounded-full"
+        />
+        <View className="flex-1">
+          {editing ? (
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              onBlur={() => setEditing(false)}
+              autoFocus
+              className="rounded-2xl border border-rizoma-border px-3 py-2 text-rizoma-black"
+              style={{ fontFamily: "Inter_700Bold", fontSize: 20 }}
+            />
+          ) : (
+            <Pressable onPress={() => setEditing(true)}>
+              <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+                {name}
+              </Text>
+              <Text className="mt-1 text-xs text-rizoma-brand" style={{ fontFamily: "Inter_500Medium" }}>
+                Toca para editar nombre
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+
+      <Text className="mt-4 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
         Gestiona pedidos, preferencias y tu coleccion.
       </Text>
 
       <View className="mt-5 rounded-3xl bg-rizoma-gray p-4">
         <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
-          Carrito: {cartCount} · Wishlist: {wishlist.length} · Jardin: {garden.length}
+          Carrito: {cartCount} · Favoritos: {wishlist.length} · Jardin: {garden.length}
         </Text>
       </View>
 
