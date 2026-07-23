@@ -1,31 +1,61 @@
 import { Image, Text, View } from "react-native";
 import { Package, MapPin, Truck } from "lucide-react-native";
+import { router } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { useShop } from "@/src/store/ShopContext";
 import { colors } from "@/src/theme/tokens";
-import { plants } from "@/src/data/plants";
-
-const steps = [
-  { title: "Pedido recibido", time: "Hoy, 09:20", done: true, latest: false },
-  { title: "En camino", time: "Hoy, 11:05", done: true, latest: true },
-  { title: "Entregado", time: "Pendiente", done: false, latest: false },
-];
+import { formatPrice } from "@/src/utils/pricing";
 
 export default function OrdersScreen() {
-  const plant = plants[0];
+  const { orders } = useShop();
+  const latest = orders[0];
+
+  if (!latest) {
+    return (
+      <Screen>
+        <ScreenHeader title="Pedidos" />
+        <EmptyState
+          title="Sin pedidos todavia"
+          description="Cuando confirmes un checkout, veras el seguimiento aqui."
+          actionLabel="Ir al catalogo"
+          onActionPress={() => router.push("/(tabs)/explore")}
+        />
+      </Screen>
+    );
+  }
+
+  const line = latest.lines[0];
+  const steps = [
+    { title: "Pedido recibido", time: "Confirmado", done: true, latest: latest.status === "received" },
+    {
+      title: "En camino",
+      time: latest.delivery === "express" ? "24-48h" : "3-5 dias",
+      done: latest.status === "shipping" || latest.status === "delivered",
+      latest: latest.status === "shipping",
+    },
+    { title: "Entregado", time: "Pendiente", done: latest.status === "delivered", latest: false },
+  ];
 
   return (
     <Screen scroll>
       <ScreenHeader title="Pedidos" />
 
+      <Text className="mb-3 text-sm text-rizoma-brand" style={{ fontFamily: "Inter_700Bold" }}>
+        {latest.id}
+      </Text>
+
       <View className="flex-row items-center gap-3 rounded-3xl bg-rizoma-gray p-3">
-        <Image source={{ uri: plant.image }} className="h-16 w-16 rounded-2xl bg-white" />
+        <Image source={{ uri: line.image }} className="h-16 w-16 rounded-2xl bg-white" />
         <View className="flex-1">
           <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-            {plant.name}
+            {line.name}
           </Text>
-          <Text className="text-sm text-rizoma-secondaryText">Qty - 1 · {plant.price.toFixed(2)} EUR</Text>
+          <Text className="text-sm text-rizoma-secondaryText">
+            Qty - {line.quantity} · {formatPrice(latest.total)}
+          </Text>
         </View>
       </View>
 
@@ -51,7 +81,7 @@ export default function OrdersScreen() {
                 {step.latest ? (
                   <View className="rounded-full bg-rizoma-yellow px-2 py-0.5">
                     <Text className="text-[10px] text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
-                      Latest
+                      Actual
                     </Text>
                   </View>
                 ) : null}
