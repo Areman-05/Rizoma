@@ -1,6 +1,7 @@
 import { Droplets, Sun, PawPrint } from "lucide-react-native";
 import { Text, View } from "react-native";
 import { colors } from "@/src/theme/tokens";
+import { lightLabel, wateringLabel } from "@/src/utils/plantLabels";
 
 interface PlantIndicatorsProps {
   light: string;
@@ -14,19 +15,19 @@ export function PlantIndicators({ light, watering, petFriendly }: PlantIndicator
       <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
         <Sun size={14} color={colors.brand} />
         <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
-          {light}
+          {lightLabel(light)}
         </Text>
       </View>
       <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
         <Droplets size={14} color={colors.brand} />
         <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
-          {watering}
+          {wateringLabel(watering)}
         </Text>
       </View>
       <View className="flex-row items-center gap-1 rounded-full bg-rizoma-gray px-3 py-1.5">
         <PawPrint size={14} color={colors.brand} />
         <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
-          {petFriendly ? "Pet-safe" : "No pets"}
+          {petFriendly ? "Segura mascotas" : "No apta mascotas"}
         </Text>
       </View>
     </View>
