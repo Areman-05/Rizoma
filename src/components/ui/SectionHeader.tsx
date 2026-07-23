@@ -11,11 +11,21 @@ export function SectionHeader({ title, subtitle, actionLabel, onActionPress }: S
   return (
     <View className="mb-3 flex-row items-end justify-between">
       <View className="flex-1 pr-3">
-        <Text className="text-xl font-semibold text-rizoma-primary">{title}</Text>
-        {subtitle ? <Text className="mt-1 text-sm text-rizoma-secondaryText">{subtitle}</Text> : null}
+        <Text className="text-xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text className="mt-1 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
       {actionLabel && onActionPress ? (
-        <Text onPress={onActionPress} className="text-sm font-semibold text-rizoma-primary">
+        <Text
+          onPress={onActionPress}
+          className="text-sm text-rizoma-brand"
+          style={{ fontFamily: "Inter_600SemiBold" }}
+        >
           {actionLabel}
         </Text>
       ) : null}
