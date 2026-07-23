@@ -1,8 +1,10 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { Text, View } from "react-native";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
-import { brand } from "@/src/brand/rizoma";
+import { Screen } from "@/src/components/ui/Screen";
+import { markOnboardingDone } from "@/src/store/persistence";
 
 const slides = [
   {
@@ -20,23 +22,46 @@ const slides = [
 ];
 
 export default function OnboardingScreen() {
+  const [index, setIndex] = useState(0);
+  const slide = slides[index];
+  const isLast = index === slides.length - 1;
+
   return (
-    <View className="flex-1 justify-between bg-rizoma-canvas px-6 pb-12 pt-16">
-      <View>
+    <Screen>
+      <View className="flex-1 justify-between pb-4 pt-6">
         <RizomaLogo size="lg" />
-        <Text className="mt-3 text-rizoma-secondaryText">{brand.description}</Text>
-      </View>
 
-      <View className="gap-4">
-        {slides.map((slide) => (
-          <View key={slide.title} className="rounded-3xl bg-white p-5">
-            <Text className="text-xl font-semibold text-rizoma-primary">{slide.title}</Text>
-            <Text className="mt-2 leading-6 text-rizoma-secondaryText">{slide.body}</Text>
+        <View className="rounded-3xl bg-rizoma-gray p-6">
+          <Text className="text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            {slide.title}
+          </Text>
+          <Text className="mt-3 text-base leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+            {slide.body}
+          </Text>
+        </View>
+
+        <View>
+          <View className="mb-6 flex-row items-center justify-center gap-2">
+            {slides.map((item, dotIndex) => (
+              <View
+                key={item.title}
+                className={`h-2 rounded-full ${dotIndex === index ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-border"}`}
+              />
+            ))}
           </View>
-        ))}
+          <RizomaButton
+            label={isLast ? "Entrar en Rizoma" : "Siguiente"}
+            onPress={async () => {
+              if (!isLast) {
+                setIndex((prev) => prev + 1);
+                return;
+              }
+              await markOnboardingDone();
+              router.replace("/(tabs)");
+            }}
+          />
+        </View>
       </View>
-
-      <RizomaButton label="Entrar en Rizoma" onPress={() => router.replace("/(tabs)")} />
-    </View>
+    </Screen>
   );
 }
