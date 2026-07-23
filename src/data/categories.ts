@@ -14,20 +14,20 @@ export const plantCategories: PlantCategory[] = [
   },
   {
     id: "low-light",
-    title: "Low light",
+    title: "Poca luz",
     subtitle: "Rincones suaves",
     filter: "lowLight",
   },
   {
     id: "easy-care",
-    title: "Easy care",
+    title: "Facil cuidado",
     subtitle: "Para empezar",
     filter: "easy",
   },
   {
     id: "statement",
-    title: "Statement",
-    subtitle: "Presencia premium",
+    title: "Presencia",
+    subtitle: "Piezas premium",
     filter: "premium",
   },
 ];
