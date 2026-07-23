@@ -6,15 +6,23 @@ interface FilterChipProps {
   active?: boolean;
   onPress?: () => void;
   variant?: "dark" | "brand";
+  accessibilityLabel?: string;
 }
 
-export function FilterChip({ label, active = false, onPress, variant = "dark" }: FilterChipProps) {
+export function FilterChip({
+  label,
+  active = false,
+  onPress,
+  variant = "dark",
+  accessibilityLabel,
+}: FilterChipProps) {
   const activeBg = variant === "brand" ? colors.brand : colors.black;
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: active }}
       className={`rounded-full px-4 py-2 ${active ? "" : "bg-rizoma-gray"}`}
       style={active ? { backgroundColor: activeBg } : undefined}
