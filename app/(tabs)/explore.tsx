@@ -9,6 +9,7 @@ import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { CatalogFilters, defaultCatalogFilters, filterPlants } from "@/src/utils/catalogFilters";
 import { useShop } from "@/src/store/ShopContext";
+import { difficultyLabel, lightLabel } from "@/src/utils/plantLabels";
 
 export default function ExploreScreen() {
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
@@ -27,9 +28,21 @@ export default function ExploreScreen() {
         {(["all", "low", "medium", "high"] as const).map((item) => (
           <FilterChip
             key={`light-${item}`}
-            label={`luz:${item}`}
+            label={item === "all" ? "Toda la luz" : lightLabel(item)}
             active={filters.light === item}
             onPress={() => setFilters((prev) => ({ ...prev, light: item }))}
+          />
+        ))}
+      </View>
+
+      <View className="mb-3 flex-row flex-wrap gap-2">
+        {(["all", "easy", "medium", "advanced"] as const).map((item) => (
+          <FilterChip
+            key={`diff-${item}`}
+            label={item === "all" ? "Toda dificultad" : difficultyLabel(item)}
+            active={filters.difficulty === item}
+            variant="brand"
+            onPress={() => setFilters((prev) => ({ ...prev, difficulty: item }))}
           />
         ))}
       </View>
@@ -38,9 +51,8 @@ export default function ExploreScreen() {
         {(["all", "yes", "no"] as const).map((item) => (
           <FilterChip
             key={`pet-${item}`}
-            label={item === "all" ? "pets:all" : item === "yes" ? "pet-safe" : "no pets"}
+            label={item === "all" ? "Todas mascotas" : item === "yes" ? "Segura mascotas" : "No apta mascotas"}
             active={filters.petFriendly === item}
-            variant="brand"
             onPress={() => setFilters((prev) => ({ ...prev, petFriendly: item }))}
           />
         ))}
