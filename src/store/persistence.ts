@@ -9,6 +9,7 @@ const WISHLIST_KEY = "rizoma.wishlist.v1";
 const ORDERS_KEY = "rizoma.orders.v1";
 const GARDEN_KEY = "rizoma.garden.v1";
 const ONBOARDING_KEY = "rizoma.onboarding.v1";
+const PROFILE_NAME_KEY = "rizoma.profileName.v1";
 
 export async function loadShopState(): Promise<{ cart: CartLine[]; wishlist: Plant[] }> {
   try {
@@ -69,4 +70,16 @@ export async function hasCompletedOnboarding(): Promise<boolean> {
 
 export async function markOnboardingDone() {
   await AsyncStorage.setItem(ONBOARDING_KEY, "done");
+}
+
+export async function loadProfileName(): Promise<string> {
+  try {
+    return (await AsyncStorage.getItem(PROFILE_NAME_KEY)) ?? "Amante de plantas";
+  } catch {
+    return "Amante de plantas";
+  }
+}
+
+export async function saveProfileName(name: string) {
+  await AsyncStorage.setItem(PROFILE_NAME_KEY, name);
 }
