@@ -6,6 +6,8 @@ import { getPlantById } from "@/src/data/plants";
 import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
+import { EmptyState } from "@/src/components/ui/EmptyState";
+import { Screen } from "@/src/components/ui/Screen";
 import { useShop } from "@/src/store/ShopContext";
 import { useGarden } from "@/src/store/GardenContext";
 import { getRelatedPlants } from "@/src/utils/relatedPlants";
@@ -23,9 +25,14 @@ export default function PlantDetailScreen() {
 
   if (!plant) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-rizoma-black">Planta no encontrada.</Text>
-      </View>
+      <Screen>
+        <EmptyState
+          title="Planta no encontrada"
+          description="Esta ficha ya no está disponible en el catálogo Rizoma."
+          actionLabel="Volver al catálogo"
+          onActionPress={() => router.replace("/(tabs)/explore")}
+        />
+      </Screen>
     );
   }
 
@@ -72,7 +79,7 @@ export default function PlantDetailScreen() {
         <PlantIndicators light={plant.light} watering={plant.watering} petFriendly={plant.petFriendly} />
 
         <Text className="mt-6 text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-          Descripcion
+          Descripción
         </Text>
         <Text className="mt-2 leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
           {plant.description}
@@ -103,11 +110,19 @@ export default function PlantDetailScreen() {
             Comprar
           </Text>
           <View className="flex-row items-center gap-3">
-            <Pressable onPress={() => setQty((q) => Math.max(1, q - 1))} className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray">
+            <Pressable
+              accessibilityLabel="Reducir cantidad"
+              onPress={() => setQty((q) => Math.max(1, q - 1))}
+              className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
+            >
               <Text>-</Text>
             </Pressable>
             <Text style={{ fontFamily: "Inter_700Bold" }}>{qty}</Text>
-            <Pressable onPress={() => setQty((q) => q + 1)} className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray">
+            <Pressable
+              accessibilityLabel="Aumentar cantidad"
+              onPress={() => setQty((q) => q + 1)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
+            >
               <Text>+</Text>
             </Pressable>
           </View>
@@ -115,13 +130,13 @@ export default function PlantDetailScreen() {
         <RizomaButton
           label="Comprar ahora"
           onPress={() => {
-            for (let i = 0; i < qty; i += 1) addToCart(plant);
+            addToCart(plant, qty);
             router.push("/(tabs)/cart");
           }}
         />
         <Pressable onPress={() => addToGarden(plant)} className="mt-2 py-2">
           <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-            Guardar en Mi Jardin
+            Guardar en Mi Jardín
           </Text>
         </Pressable>
       </View>
