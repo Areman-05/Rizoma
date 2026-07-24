@@ -32,4 +32,12 @@ Direccion visual inspirada en el proyecto Behance Leafy, con identidad propia Ri
 
 ## Nota
 
-El diseno se itera hasta alcanzar nivel Behance. Feedback visual bienvenido en cada tanda.
+El diseño se itera hasta alcanzar nivel Behance. Feedback visual bienvenido en cada tanda.
+
+## Flujos recientes
+
+- Home scrollable con carrusel de promos y subtítulos de categoría
+- Checkout con pasos atrás, pedidos cancelables y envío calculado
+- Chat con timestamps e indicador “escribiendo…”
+- Jardín con barra de riego y skeleton de carga
+
