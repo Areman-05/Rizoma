@@ -1,4 +1,4 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 interface SectionHeaderProps {
   title: string;
@@ -21,13 +21,11 @@ export function SectionHeader({ title, subtitle, actionLabel, onActionPress }: S
         ) : null}
       </View>
       {actionLabel && onActionPress ? (
-        <Text
-          onPress={onActionPress}
-          className="text-sm text-rizoma-brand"
-          style={{ fontFamily: "Inter_600SemiBold" }}
-        >
-          {actionLabel}
-        </Text>
+        <Pressable onPress={onActionPress} accessibilityRole="button" accessibilityLabel={actionLabel}>
+          <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+            {actionLabel}
+          </Text>
+        </Pressable>
       ) : null}
     </View>
   );
