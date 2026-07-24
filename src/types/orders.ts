@@ -14,7 +14,7 @@ export interface Order {
   shipping: number;
   subtotal: number;
   total: number;
-  status: "received" | "shipping" | "delivered";
+  status: "received" | "shipping" | "delivered" | "cancelled";
   lines: OrderLine[];
 }
 
