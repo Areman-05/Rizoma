@@ -15,13 +15,14 @@ interface ShopContextValue {
   cartCount: number;
   cartTotal: number;
   hydrated: boolean;
-  addToCart: (plant: Plant) => void;
+  addToCart: (plant: Plant, quantity?: number) => void;
   removeFromCart: (plantId: string) => void;
   updateQuantity: (plantId: string, quantity: number) => void;
   toggleWishlist: (plant: Plant) => void;
   isInWishlist: (plantId: string) => boolean;
   clearCart: () => void;
   placeOrder: (order: Order) => void;
+  cancelOrder: (orderId: string) => void;
 }
 
 const ShopContext = createContext<ShopContextValue | null>(null);
@@ -67,15 +68,16 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       cartCount,
       cartTotal,
       hydrated,
-      addToCart: (plant) => {
+      addToCart: (plant, quantity = 1) => {
+        const amount = Math.max(1, quantity);
         setCart((prev) => {
           const existing = prev.find((line) => line.plant.id === plant.id);
           if (existing) {
             return prev.map((line) =>
-              line.plant.id === plant.id ? { ...line, quantity: line.quantity + 1 } : line,
+              line.plant.id === plant.id ? { ...line, quantity: line.quantity + amount } : line,
             );
           }
-          return [...prev, { plant, quantity: 1 }];
+          return [...prev, { plant, quantity: amount }];
         });
       },
       removeFromCart: (plantId) => {
@@ -99,6 +101,15 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       placeOrder: (order) => {
         setOrders((prev) => [order, ...prev]);
         setCart([]);
+      },
+      cancelOrder: (orderId) => {
+        setOrders((prev) =>
+          prev.map((order) =>
+            order.id === orderId && order.status !== "delivered"
+              ? { ...order, status: "cancelled" }
+              : order,
+          ),
+        );
       },
     };
   }, [cart, wishlist, orders, hydrated]);
