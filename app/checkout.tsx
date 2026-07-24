@@ -5,9 +5,11 @@ import { CreditCard } from "lucide-react-native";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
+import { EmptyState } from "@/src/components/ui/EmptyState";
 import { useShop } from "@/src/store/ShopContext";
 import { createOrderId } from "@/src/types/orders";
 import { formatPrice } from "@/src/utils/pricing";
+import { calculateShipping } from "@/src/utils/shipping";
 import { colors } from "@/src/theme/tokens";
 
 type Step = "address" | "delivery" | "payment" | "success";
@@ -19,29 +21,37 @@ export default function CheckoutScreen() {
   const { cart, cartTotal, placeOrder } = useShop();
   const [step, setStep] = useState<Step>("address");
   const [address, setAddress] = useState("Calle Verde 12, Madrid");
+  const [addressError, setAddressError] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<Delivery>("standard");
   const [cardNumber, setCardNumber] = useState("**** **** **** 4242");
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  const shipping = delivery === "express" ? 6.9 : cartTotal >= 40 ? 0 : 4.9;
+  const shipping = calculateShipping(cartTotal, delivery);
   const total = cartTotal + shipping;
   const stepIndex = steps.indexOf(step === "success" ? "payment" : step);
 
   const stepTitle = useMemo(() => {
-    if (step === "address") return "1/3 Direccion";
+    if (step === "address") return "1/3 Dirección";
     if (step === "delivery") return "2/3 Entrega";
     if (step === "payment") return "3/3 Pago";
     return "Confirmado";
   }, [step]);
 
+  const goBackStep = () => {
+    if (step === "delivery") setStep("address");
+    else if (step === "payment") setStep("delivery");
+  };
+
   if (cart.length === 0 && step !== "success") {
     return (
       <Screen>
         <ScreenHeader title="Checkout" />
-        <Text className="mb-4 text-center text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-          No hay productos para pagar.
-        </Text>
-        <RizomaButton label="Volver al catalogo" onPress={() => router.replace("/(tabs)/explore")} />
+        <EmptyState
+          title="Nada que pagar"
+          description="Añade plantas al carrito antes de continuar con el pedido."
+          actionLabel="Volver al catálogo"
+          onActionPress={() => router.replace("/(tabs)/explore")}
+        />
       </Screen>
     );
   }
@@ -63,7 +73,7 @@ export default function CheckoutScreen() {
             className="mt-3 text-center text-rizoma-secondaryText"
             style={{ fontFamily: "Inter_400Regular" }}
           >
-            Gracias por comprar en Rizoma. Tu pedido esta en preparacion.
+            Gracias por comprar en Rizoma. Tu pedido está en preparación.
           </Text>
           <View className="mt-6 w-full">
             <RizomaButton label="Ver pedidos" onPress={() => router.replace("/orders")} />
@@ -94,23 +104,40 @@ export default function CheckoutScreen() {
           Total: {formatPrice(total)}
         </Text>
         <Text className="mt-1 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-          {cart.length} lineas · envio {shipping === 0 ? "gratis" : formatPrice(shipping)}
+          {cart.length} líneas · envío {shipping === 0 ? "gratis" : formatPrice(shipping)}
         </Text>
       </View>
 
       {step === "address" ? (
         <View className="mt-5 rounded-3xl border border-rizoma-border bg-white p-5">
           <Text className="mb-2 text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
-            Direccion de entrega
+            Dirección de entrega
           </Text>
           <TextInput
             value={address}
-            onChangeText={setAddress}
+            onChangeText={(value) => {
+              setAddress(value);
+              setAddressError(null);
+            }}
             className="rounded-2xl border border-rizoma-border px-4 py-3 text-rizoma-black"
             style={{ fontFamily: "Inter_400Regular" }}
           />
+          {addressError ? (
+            <Text className="mt-2 text-sm text-rizoma-red" style={{ fontFamily: "Inter_500Medium" }}>
+              {addressError}
+            </Text>
+          ) : null}
           <View className="mt-4">
-            <RizomaButton label="Continuar" onPress={() => setStep("delivery")} />
+            <RizomaButton
+              label="Continuar"
+              onPress={() => {
+                if (address.trim().length < 8) {
+                  setAddressError("Introduce una dirección válida.");
+                  return;
+                }
+                setStep("delivery");
+              }}
+            />
           </View>
         </View>
       ) : null}
@@ -121,7 +148,7 @@ export default function CheckoutScreen() {
             [
               {
                 id: "standard" as const,
-                title: "Entrega estandar (3-5 dias)",
+                title: "Entrega estándar (3-5 días)",
                 subtitle: cartTotal >= 40 ? "Gratis" : "+4.90 EUR",
               },
               {
@@ -148,6 +175,11 @@ export default function CheckoutScreen() {
             );
           })}
           <RizomaButton label="Continuar al pago" onPress={() => setStep("payment")} />
+          <Pressable onPress={goBackStep} accessibilityRole="button" accessibilityLabel="Volver al paso anterior">
+            <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Anterior
+            </Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -182,7 +214,7 @@ export default function CheckoutScreen() {
               style={{ fontFamily: "Inter_400Regular" }}
             />
           </View>
-          <View className="mt-4">
+          <View className="mt-4 gap-3">
             <RizomaButton
               label="Confirmar pedido"
               onPress={() => {
@@ -195,7 +227,7 @@ export default function CheckoutScreen() {
                   shipping,
                   subtotal: cartTotal,
                   total,
-                  status: "shipping",
+                  status: "received",
                   lines: cart.map((line) => ({
                     plantId: line.plant.id,
                     name: line.plant.name,
@@ -208,6 +240,11 @@ export default function CheckoutScreen() {
                 setStep("success");
               }}
             />
+            <Pressable onPress={goBackStep} accessibilityRole="button" accessibilityLabel="Volver al paso anterior">
+              <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+                Anterior
+              </Text>
+            </Pressable>
           </View>
         </View>
       ) : null}
