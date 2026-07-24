@@ -1,8 +1,9 @@
 import { Image, Pressable, Text, View } from "react-native";
 import { Heart, Star } from "lucide-react-native";
 import { Plant } from "@/src/types/catalog";
-import { colors } from "@/src/theme/tokens";
+import { colors, elevation } from "@/src/theme/tokens";
 import { formatPrice, salePercent } from "@/src/utils/pricing";
+import { PressableScale } from "@/src/components/ui/PressableScale";
 
 interface PlantCardProps {
   plant: Plant;
@@ -23,12 +24,12 @@ export function PlantCard({
   const imageHeight = compact ? "h-28" : "h-40";
 
   return (
-    <Pressable onPress={onPress} className="mb-4 flex-1">
-      <View className="overflow-hidden rounded-3xl bg-rizoma-gray">
+    <PressableScale onPress={onPress} className="mb-4 flex-1">
+      <View className="overflow-hidden rounded-3xl bg-rizoma-gray" style={elevation.soft}>
         {percent ? (
           <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-red px-2 py-1">
             <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
-              {percent}% off
+              −{percent}%
             </Text>
           </View>
         ) : null}
@@ -42,6 +43,7 @@ export function PlantCard({
         <Pressable
           onPress={onToggleWishlist}
           accessibilityLabel="Favorito"
+          accessibilityRole="button"
           className="absolute right-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-full bg-white"
         >
           <Heart
@@ -76,6 +78,6 @@ export function PlantCard({
           </Text>
         ) : null}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
