@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Image, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
@@ -25,7 +25,7 @@ export default function ScanScreen() {
     <Screen scroll>
       <ScreenHeader title="Escanear" />
       <Text className="text-sm leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-        Encuadramos la planta y devolvemos top-3 con nivel de confianza. Orientativo, no diagnostico absoluto.
+        Encuadramos la planta y devolvemos top-3 con nivel de confianza. Orientativo, no diagnóstico absoluto.
       </Text>
 
       <View className="mt-6 overflow-hidden rounded-3xl bg-black">
@@ -33,6 +33,7 @@ export default function ScanScreen() {
           source={{ uri: "https://images.unsplash.com/photo-1593691509543-c55fb32e5b14?w=1000" }}
           className="h-96 w-full opacity-90"
           resizeMode="cover"
+          accessibilityLabel="Vista previa de cámara"
         />
         <View className="absolute inset-0 items-center justify-center">
           <View className="h-56 w-56 border-2 border-white/90" style={{ borderRadius: 8 }} />
@@ -61,14 +62,18 @@ export default function ScanScreen() {
         <View className="mt-5 gap-2">
           {matches.map((match, index) => (
             <Link key={match.plant.id} href={`/plants/${match.plant.id}`} asChild>
-              <View className="rounded-3xl border border-rizoma-border bg-white px-4 py-3">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Ver ficha de ${match.plant.name}`}
+                className="rounded-3xl border border-rizoma-border bg-white px-4 py-3"
+              >
                 <Text style={{ fontFamily: "Inter_600SemiBold", color: colors.black }}>
                   {index + 1}. {match.plant.name}
                 </Text>
                 <Text className="text-sm text-rizoma-secondaryText">
                   {Math.round(match.confidence * 100)}% · {match.level}
                 </Text>
-              </View>
+              </Pressable>
             </Link>
           ))}
         </View>
