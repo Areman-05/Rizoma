@@ -1,4 +1,4 @@
-import { Image, Text, View } from "react-native";
+import { Image, Pressable, Text, View } from "react-native";
 import { Package, MapPin, Truck } from "lucide-react-native";
 import { router } from "expo-router";
 import { Screen } from "@/src/components/ui/Screen";
@@ -6,45 +6,37 @@ import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { useShop } from "@/src/store/ShopContext";
+import { Order } from "@/src/types/orders";
 import { colors } from "@/src/theme/tokens";
 import { formatPrice } from "@/src/utils/pricing";
 
-export default function OrdersScreen() {
-  const { orders } = useShop();
-  const latest = orders[0];
-
-  if (!latest) {
-    return (
-      <Screen>
-        <ScreenHeader title="Pedidos" />
-        <EmptyState
-          title="Sin pedidos todavia"
-          description="Cuando confirmes un checkout, veras el seguimiento aqui."
-          actionLabel="Ir al catalogo"
-          onActionPress={() => router.push("/(tabs)/explore")}
-        />
-      </Screen>
-    );
-  }
-
-  const line = latest.lines[0];
+function OrderCard({ order, onCancel }: { order: Order; onCancel: () => void }) {
+  const line = order.lines[0];
   const steps = [
-    { title: "Pedido recibido", time: "Confirmado", done: true, latest: latest.status === "received" },
+    {
+      title: "Pedido recibido",
+      time: "Confirmado",
+      done: true,
+      latest: order.status === "received",
+    },
     {
       title: "En camino",
-      time: latest.delivery === "express" ? "24-48h" : "3-5 dias",
-      done: latest.status === "shipping" || latest.status === "delivered",
-      latest: latest.status === "shipping",
+      time: order.delivery === "express" ? "24-48h" : "3-5 días",
+      done: order.status === "shipping" || order.status === "delivered",
+      latest: order.status === "shipping",
     },
-    { title: "Entregado", time: "Pendiente", done: latest.status === "delivered", latest: false },
+    {
+      title: order.status === "cancelled" ? "Cancelado" : "Entregado",
+      time: order.status === "cancelled" ? "Pedido anulado" : "Pendiente",
+      done: order.status === "delivered" || order.status === "cancelled",
+      latest: order.status === "cancelled",
+    },
   ];
 
   return (
-    <Screen scroll>
-      <ScreenHeader title="Pedidos" />
-
+    <View className="mb-8 rounded-3xl border border-rizoma-border bg-white p-4">
       <Text className="mb-3 text-sm text-rizoma-brand" style={{ fontFamily: "Inter_700Bold" }}>
-        {latest.id}
+        {order.id}
       </Text>
 
       <View className="flex-row items-center gap-3 rounded-3xl bg-rizoma-gray p-3">
@@ -54,7 +46,7 @@ export default function OrdersScreen() {
             {line.name}
           </Text>
           <Text className="text-sm text-rizoma-secondaryText">
-            Qty - {line.quantity} · {formatPrice(latest.total)}
+            Cant. {line.quantity} · {formatPrice(order.total)}
           </Text>
         </View>
       </View>
@@ -62,7 +54,7 @@ export default function OrdersScreen() {
       <View className="mt-6 flex-row items-center justify-between px-4">
         <Package size={22} color={colors.brand} />
         <View className="mx-2 h-1 flex-1 rounded-full bg-rizoma-brand" />
-        <Truck size={22} color={colors.brand} />
+        <Truck size={22} color={order.status === "cancelled" ? colors.grayText : colors.brand} />
         <View className="mx-2 h-1 flex-1 rounded-full bg-rizoma-gray" />
         <MapPin size={22} color={colors.grayText} />
       </View>
@@ -92,9 +84,43 @@ export default function OrdersScreen() {
         ))}
       </View>
 
-      <View className="mt-8">
-        <RizomaButton label="Cancelar entrega" variant="primary" onPress={() => {}} />
-      </View>
+      {order.status !== "cancelled" && order.status !== "delivered" ? (
+        <View className="mt-6">
+          <RizomaButton label="Cancelar entrega" variant="danger" onPress={onCancel} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+export default function OrdersScreen() {
+  const { orders, cancelOrder } = useShop();
+
+  if (orders.length === 0) {
+    return (
+      <Screen>
+        <ScreenHeader title="Pedidos" />
+        <EmptyState
+          title="Sin pedidos todavía"
+          description="Cuando confirmes un checkout, verás el seguimiento aquí."
+          actionLabel="Ir al catálogo"
+          onActionPress={() => router.push("/(tabs)/explore")}
+        />
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen scroll>
+      <ScreenHeader title="Pedidos" />
+      {orders.map((order) => (
+        <OrderCard key={order.id} order={order} onCancel={() => cancelOrder(order.id)} />
+      ))}
+      <Pressable onPress={() => router.push("/(tabs)/explore")} className="mb-4 py-2">
+        <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+          Seguir comprando
+        </Text>
+      </Pressable>
     </Screen>
   );
 }
