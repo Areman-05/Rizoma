@@ -31,7 +31,7 @@ export function wateringLabel(watering: string): string {
 export function difficultyLabel(difficulty: PlantDifficulty | string): string {
   switch (difficulty) {
     case "easy":
-      return "Facil";
+      return "Fácil";
     case "medium":
       return "Media";
     case "advanced":

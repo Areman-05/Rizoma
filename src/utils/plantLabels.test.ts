@@ -13,7 +13,7 @@ describe("plantLabels", () => {
   });
 
   it("maps difficulty and experience", () => {
-    expect(difficultyLabel("easy")).toBe("Facil");
+    expect(difficultyLabel("easy")).toBe("Fácil");
     expect(experienceLabel("beginner")).toBe("Principiante");
   });
 });

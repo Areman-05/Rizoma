@@ -15,7 +15,7 @@ export default function LoginScreen() {
       <View className="mt-8 items-center">
         <RizomaLogo size="lg" />
         <Text className="mt-3 text-center text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-          Entra para sincronizar favoritos, pedidos y Mi Jardin.
+          Entra para sincronizar favoritos, pedidos y Mi Jardín.
         </Text>
       </View>
 
@@ -36,7 +36,7 @@ export default function LoginScreen() {
         <TextInput
           value={password}
           onChangeText={setPassword}
-          placeholder="Contrasena"
+          placeholder="Contraseña"
           placeholderTextColor="#9CA3AF"
           secureTextEntry
           className="rounded-full border border-rizoma-border bg-white px-4 py-4 text-rizoma-black"
@@ -54,11 +54,11 @@ export default function LoginScreen() {
           label="Continuar"
           onPress={() => {
             if (!email.trim() || !email.includes("@")) {
-              setError("Introduce un email valido.");
+              setError("Introduce un email válido.");
               return;
             }
             if (!password.trim()) {
-              setError("Introduce tu contrasena.");
+              setError("Introduce tu contraseña.");
               return;
             }
             router.replace("/(tabs)");

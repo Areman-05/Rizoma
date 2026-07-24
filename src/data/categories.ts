@@ -8,7 +8,7 @@ export interface PlantCategory {
 export const plantCategories: PlantCategory[] = [
   {
     id: "pet-safe",
-    title: "Pet-safe",
+    title: "Segura mascotas",
     subtitle: "Convive con mascotas",
     filter: "petFriendly",
   },
@@ -20,7 +20,7 @@ export const plantCategories: PlantCategory[] = [
   },
   {
     id: "easy-care",
-    title: "Facil cuidado",
+    title: "Fácil cuidado",
     subtitle: "Para empezar",
     filter: "easy",
   },
