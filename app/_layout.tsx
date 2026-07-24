@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import "@/src/polyfills/colorScheme";
 import { FontProvider } from "@/src/theme/FontProvider";
 import { ShopProvider } from "@/src/store/ShopContext";
 import { GardenProvider } from "@/src/store/GardenContext";
 import { hasCompletedOnboarding } from "@/src/store/persistence";
+import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
+import { colors } from "@/src/theme/tokens";
 import "../global.css";
 
 function OnboardingGate({ children }: { children: React.ReactNode }) {
@@ -30,7 +32,12 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
   }, [ready, needsOnboarding, segments]);
 
   if (!ready) {
-    return <View className="flex-1 bg-white" />;
+    return (
+      <View className="flex-1 items-center justify-center bg-white" accessibilityLabel="Cargando Rizoma">
+        <RizomaLogo size="lg" />
+        <ActivityIndicator className="mt-6" color={colors.brand} />
+      </View>
+    );
   }
 
   return <>{children}</>;
