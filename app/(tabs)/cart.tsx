@@ -6,13 +6,11 @@ import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { formatPrice } from "@/src/utils/pricing";
-
-const FREE_SHIPPING_FROM = 40;
-const STANDARD_SHIPPING = 4.9;
+import { calculateShipping, FREE_SHIPPING_FROM } from "@/src/utils/shipping";
 
 export default function CartScreen() {
   const { cart, cartTotal, updateQuantity, removeFromCart } = useShop();
-  const shipping = cartTotal >= FREE_SHIPPING_FROM || cartTotal === 0 ? 0 : STANDARD_SHIPPING;
+  const shipping = calculateShipping(cartTotal, "standard");
   const payable = cartTotal + shipping;
 
   return (
@@ -21,8 +19,8 @@ export default function CartScreen() {
 
       {cart.length === 0 ? (
         <EmptyState
-          title="Carrito vacio"
-          description="Anade plantas desde el catalogo o desde sus fichas."
+          title="Carrito vacío"
+          description="Añade plantas desde el catálogo o desde sus fichas."
           actionLabel="Explorar plantas"
           onActionPress={() => router.push("/(tabs)")}
         />
@@ -76,7 +74,7 @@ export default function CartScreen() {
             </View>
             <View className="mt-2 flex-row items-center justify-between">
               <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-                Envio
+                Envío
               </Text>
               <Text style={{ fontFamily: "Inter_600SemiBold" }}>
                 {shipping === 0 ? "Gratis" : formatPrice(shipping)}
@@ -84,7 +82,7 @@ export default function CartScreen() {
             </View>
             {cartTotal < FREE_SHIPPING_FROM ? (
               <Text className="mt-2 text-xs text-rizoma-brand" style={{ fontFamily: "Inter_500Medium" }}>
-                Te faltan {formatPrice(FREE_SHIPPING_FROM - cartTotal)} para envio gratis
+                Te faltan {formatPrice(FREE_SHIPPING_FROM - cartTotal)} para envío gratis
               </Text>
             ) : null}
             <View className="mt-3 flex-row items-center justify-between border-t border-rizoma-border pt-3">
