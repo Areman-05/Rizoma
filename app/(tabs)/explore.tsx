@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
+import { SearchX } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { FilterChip } from "@/src/components/ui/FilterChip";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
-import { EmptyState } from "@/src/components/ui/EmptyState";
+import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
 import { CatalogFilters, defaultCatalogFilters, filterPlants } from "@/src/utils/catalogFilters";
 import { useShop } from "@/src/store/ShopContext";
 import { difficultyLabel, lightLabel } from "@/src/utils/plantLabels";
@@ -19,7 +20,7 @@ export default function ExploreScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title="Catalogo" />
+      <ScreenHeader title="Catálogo" showNotificationBadge />
       <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
         Filtra por luz, dificultad y mascotas.
       </Text>
@@ -47,7 +48,7 @@ export default function ExploreScreen() {
         ))}
       </View>
 
-      <View className="mb-4 flex-row flex-wrap gap-2">
+      <View className="mb-3 flex-row flex-wrap gap-2">
         {(["all", "yes", "no"] as const).map((item) => (
           <FilterChip
             key={`pet-${item}`}
@@ -57,6 +58,12 @@ export default function ExploreScreen() {
           />
         ))}
       </View>
+
+      <Text className="mb-3 text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
+        {filteredPlants.length === 0
+          ? "Sin coincidencias"
+          : `${filteredPlants.length} planta${filteredPlants.length === 1 ? "" : "s"}`}
+      </Text>
 
       <FlatList
         data={filteredPlants}
@@ -79,9 +86,10 @@ export default function ExploreScreen() {
         ListEmptyComponent={
           <EmptyState
             title="Sin coincidencias"
-            description="Prueba otra combinacion de filtros."
+            description="Prueba otra combinación de filtros."
             actionLabel="Limpiar filtros"
             onActionPress={() => setFilters(defaultCatalogFilters)}
+            icon={<SearchX size={24} color={emptyIconTone} />}
           />
         }
         showsVerticalScrollIndicator={false}
