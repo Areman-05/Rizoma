@@ -1,0 +1,13 @@
+Starting project at C:\Users\pab48\Documents\GitHub\Rizoma
+Starting Metro Bundler
+
+Waiting on http://localhost:8081
+
+An update for expo is available: 57.0.3 → ~57.0.8
+7 other packages may need updating. Run npx expo install --check for details.
+Logs for your project will appear below.
+Android Bundled 1183ms node_modules\expo-router\entry.js (3551 modules)
+Android Bundled 83ms node_modules\expo-router\entry.js (1 module)
+Android Bundled 77ms node_modules\expo-router\entry.js (1 module)
+| (node:34484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)

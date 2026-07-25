@@ -5,7 +5,7 @@ import { Leaf, ScanLine, Sun } from "lucide-react-native";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
-import { markOnboardingDone } from "@/src/store/persistence";
+import { useOnboarding } from "@/src/store/OnboardingContext";
 import { colors } from "@/src/theme/tokens";
 
 const slides = [
@@ -28,13 +28,21 @@ const slides = [
 
 export default function OnboardingScreen() {
   const [index, setIndex] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const { completeOnboarding } = useOnboarding();
   const slide = slides[index];
   const isLast = index === slides.length - 1;
   const Icon = slide.Icon;
 
   const finish = async () => {
-    await markOnboardingDone();
-    router.replace("/(tabs)");
+    if (busy) return;
+    setBusy(true);
+    try {
+      await completeOnboarding();
+      router.replace("/(tabs)");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -42,9 +50,14 @@ export default function OnboardingScreen() {
       <View className="flex-1 justify-between pb-4 pt-6">
         <View className="flex-row items-center justify-between">
           <RizomaLogo size="lg" />
-          <Pressable onPress={finish} accessibilityRole="button" accessibilityLabel="Saltar onboarding">
+          <Pressable
+            onPress={finish}
+            disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel="Saltar onboarding"
+          >
             <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-              Saltar
+              {busy ? "Entrando..." : "Saltar"}
             </Text>
           </Pressable>
         </View>
@@ -74,8 +87,9 @@ export default function OnboardingScreen() {
             ))}
           </View>
           <RizomaButton
-            label={isLast ? "Entrar en Rizoma" : "Siguiente"}
+            label={busy ? "Entrando..." : isLast ? "Entrar en Rizoma" : "Siguiente"}
             onPress={async () => {
+              if (busy) return;
               if (!isLast) {
                 setIndex((prev) => prev + 1);
                 return;
