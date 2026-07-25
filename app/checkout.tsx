@@ -45,7 +45,7 @@ export default function CheckoutScreen() {
   if (cart.length === 0 && step !== "success") {
     return (
       <Screen>
-        <ScreenHeader title="Checkout" />
+        <ScreenHeader title="Finalizar compra" />
         <EmptyState
           title="Nada que pagar"
           description="Añade plantas al carrito antes de continuar con el pedido."
@@ -73,10 +73,15 @@ export default function CheckoutScreen() {
             className="mt-3 text-center text-rizoma-secondaryText"
             style={{ fontFamily: "Inter_400Regular" }}
           >
-            Gracias por comprar en Rizoma. Tu pedido está en preparación.
+            Tu planta va en camino. Gracias por comprar en Rizoma.
           </Text>
-          <View className="mt-6 w-full">
+          <View className="mt-6 w-full gap-3">
             <RizomaButton label="Ver pedidos" onPress={() => router.replace("/orders")} />
+            <Pressable onPress={() => router.replace("/(tabs)")} accessibilityRole="button">
+              <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+                Volver al inicio
+              </Text>
+            </Pressable>
           </View>
         </View>
       </Screen>
@@ -85,7 +90,7 @@ export default function CheckoutScreen() {
 
   return (
     <Screen scroll>
-      <ScreenHeader title="Checkout" />
+      <ScreenHeader title="Finalizar compra" />
       <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
         {stepTitle}
       </Text>
@@ -203,13 +208,13 @@ export default function CheckoutScreen() {
           <View className="mt-3 flex-row gap-3">
             <TextInput
               placeholder="MM/AA"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.grayText}
               className="flex-1 rounded-2xl border border-rizoma-border px-4 py-3"
               style={{ fontFamily: "Inter_400Regular" }}
             />
             <TextInput
               placeholder="CVC"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.grayText}
               className="flex-1 rounded-2xl border border-rizoma-border px-4 py-3"
               style={{ fontFamily: "Inter_400Regular" }}
             />
