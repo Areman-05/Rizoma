@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, Text, View } from "react-native";
 import { Link } from "expo-router";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
+import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
 import { runPlantScan, ScanMatch } from "@/src/services/scanPlant";
 import { colors } from "@/src/theme/tokens";
+import { ScanLine } from "lucide-react-native";
 
 export default function ScanScreen() {
   const [matches, setMatches] = useState<ScanMatch[] | null>(null);
@@ -37,16 +39,31 @@ export default function ScanScreen() {
         />
         <View className="absolute inset-0 items-center justify-center">
           <View className="h-56 w-56 border-2 border-white/90" style={{ borderRadius: 8 }} />
+          {!top && !scanning ? (
+            <Text className="mt-4 text-sm text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Encuadra la planta
+            </Text>
+          ) : null}
         </View>
 
-        {top ? (
+        {scanning ? (
+          <View className="absolute inset-0 items-center justify-center bg-black/45">
+            <ActivityIndicator size="large" color={colors.brand} />
+            <Text className="mt-3 text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Identificando…
+            </Text>
+          </View>
+        ) : null}
+
+        {top && !scanning ? (
           <View className="absolute bottom-4 left-4 right-4 flex-row items-center gap-3 rounded-3xl bg-white p-3">
             <Image source={{ uri: top.plant.image }} className="h-14 w-14 rounded-2xl bg-rizoma-gray" />
             <View className="flex-1">
               <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-                {top.plant.latinName}
+                {top.plant.name}
               </Text>
-              <Text className="text-xs text-rizoma-secondaryText" numberOfLines={2}>
+              <Text className="text-xs italic text-rizoma-secondaryText">{top.plant.latinName}</Text>
+              <Text className="mt-1 text-xs text-rizoma-secondaryText" numberOfLines={2}>
                 Confianza {top.level} · {top.reason}
               </Text>
             </View>
@@ -58,7 +75,17 @@ export default function ScanScreen() {
         <RizomaButton label={scanning ? "Escaneando..." : "Identificar planta"} onPress={onScan} />
       </View>
 
-      {matches ? (
+      {matches && matches.length === 0 ? (
+        <EmptyState
+          title="Sin coincidencias"
+          description="Prueba otra toma con más luz o acerca el encuadre."
+          actionLabel="Reintentar"
+          onActionPress={onScan}
+          icon={<ScanLine size={24} color={emptyIconTone} />}
+        />
+      ) : null}
+
+      {matches && matches.length > 0 ? (
         <View className="mt-5 gap-2">
           {matches.map((match, index) => (
             <Link key={match.plant.id} href={`/plants/${match.plant.id}`} asChild>
