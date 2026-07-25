@@ -1,7 +1,7 @@
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import { Bell, ChevronRight, HelpCircle, Leaf, ScanLine, Settings, Shield } from "lucide-react-native";
+import { Bell, ChevronRight, HelpCircle, Package, ScanLine, Settings, Shield, Sprout } from "lucide-react-native";
 import { Screen } from "@/src/components/ui/Screen";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { useShop } from "@/src/store/ShopContext";
@@ -11,12 +11,12 @@ import { colors } from "@/src/theme/tokens";
 import type { Href } from "expo-router";
 
 const links: { href: Href; label: string; icon: typeof Settings }[] = [
-  { href: "/orders", label: "Mis pedidos", icon: Leaf },
+  { href: "/orders", label: "Mis pedidos", icon: Package },
   { href: "/notifications", label: "Notificaciones", icon: Bell },
-  { href: "/garden", label: "Mi Jardín", icon: Leaf },
+  { href: "/garden", label: "Mi Jardín", icon: Sprout },
   { href: "/match", label: "Plant Match", icon: ScanLine },
   { href: "/scan", label: "Escanear planta", icon: ScanLine },
-  { href: "/onboarding", label: "Ayuda / Onboarding", icon: HelpCircle },
+  { href: "/onboarding", label: "Guía de bienvenida", icon: HelpCircle },
   { href: "/login", label: "Cuenta / Login", icon: Settings },
 ];
 
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
 
       <View className="mt-4 flex-row items-center gap-2 px-1">
         <Shield size={14} color={colors.grayText} />
-        <Text className="text-xs text-rizoma-grayText">Privacidad y términos (demo portfolio)</Text>
+        <Text className="text-xs text-rizoma-grayText">Privacidad y términos</Text>
       </View>
     </Screen>
   );
