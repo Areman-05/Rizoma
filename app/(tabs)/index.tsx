@@ -22,14 +22,15 @@ import { SkeletonCard } from "@/src/components/ui/SkeletonCard";
 import { Screen } from "@/src/components/ui/Screen";
 import { useShop } from "@/src/store/ShopContext";
 import { plantsByCategory } from "@/src/utils/catalogFilters";
+import { loadProfileName } from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
 
 const promoWidth = Dimensions.get("window").width - 26;
 
 const promos = [
-  { id: "p1", title: "Hasta 60% dto.", subtitle: "Oferta activa en interiores", plantIndex: 0 },
-  { id: "p2", title: "Pet-safe week", subtitle: "Plantas seguras para mascotas", plantIndex: 1 },
-  { id: "p3", title: "Envio gratis", subtitle: "Pedidos desde 40 EUR", plantIndex: 2 },
+  { id: "p1", title: "Hasta 60% descuento", subtitle: "Oferta activa en interiores", plantIndex: 0 },
+  { id: "p2", title: "Semana pet-safe", subtitle: "Plantas seguras para mascotas", plantIndex: 1 },
+  { id: "p3", title: "Envío gratis", subtitle: "Pedidos desde 40 EUR", plantIndex: 2 },
 ];
 
 function formatCountdown(totalSeconds: number) {
@@ -44,8 +45,13 @@ export default function HomeScreen() {
   const [categoryId, setCategoryId] = useState(plantCategories[0].id);
   const [secondsLeft, setSecondsLeft] = useState(2 * 3600 + 12 * 60);
   const [promoIndex, setPromoIndex] = useState(0);
+  const [profileName, setProfileName] = useState("amante de las plantas");
   const promoRef = useRef<FlatList<(typeof promos)[number]>>(null);
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
+
+  useEffect(() => {
+    loadProfileName().then((name) => setProfileName(name.toLowerCase()));
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -68,7 +74,12 @@ export default function HomeScreen() {
   return (
     <Screen scroll>
       <View className="mb-4 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-3">
+        <Pressable
+          className="flex-row items-center gap-3"
+          onPress={() => router.push("/(tabs)/profile")}
+          accessibilityRole="button"
+          accessibilityLabel="Ir al perfil"
+        >
           <Image
             source={{ uri: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120" }}
             className="h-11 w-11 rounded-full"
@@ -76,7 +87,7 @@ export default function HomeScreen() {
           />
           <View>
             <Text className="text-base text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              Hola, amante de las plantas
+              Hola, {profileName}
             </Text>
             <View className="mt-0.5 flex-row items-center gap-1">
               <MapPin size={12} color={colors.grayText} />
@@ -85,10 +96,13 @@ export default function HomeScreen() {
               </Text>
             </View>
           </View>
+        </Pressable>
+        <View>
+          <CircularIconButton accessibilityLabel="Notificaciones" onPress={() => router.push("/notifications")}>
+            <Bell size={18} color={colors.black} />
+          </CircularIconButton>
+          <View className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-rizoma-red" />
         </View>
-        <CircularIconButton accessibilityLabel="Notificaciones" onPress={() => router.push("/notifications")}>
-          <Bell size={18} color={colors.black} />
-        </CircularIconButton>
       </View>
 
       <LeafySearchBar
