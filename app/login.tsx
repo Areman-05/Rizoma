@@ -4,6 +4,8 @@ import { Text, TextInput, View } from "react-native";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
+import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
+import { colors } from "@/src/theme/tokens";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -12,7 +14,8 @@ export default function LoginScreen() {
 
   return (
     <Screen scroll>
-      <View className="mt-8 items-center">
+      <ScreenHeader title="Cuenta" showBell={false} />
+      <View className="mt-4 items-center">
         <RizomaLogo size="lg" />
         <Text className="mt-3 text-center text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
           Entra para sincronizar favoritos, pedidos y Mi Jardín.
@@ -26,10 +29,10 @@ export default function LoginScreen() {
             setEmail(value);
             setError(null);
           }}
-          placeholder="Email"
+          placeholder="Correo electrónico"
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.grayText}
           className="rounded-full border border-rizoma-border bg-white px-4 py-4 text-rizoma-black"
           style={{ fontFamily: "Inter_400Regular" }}
         />
@@ -37,7 +40,7 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           placeholder="Contraseña"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.grayText}
           secureTextEntry
           className="rounded-full border border-rizoma-border bg-white px-4 py-4 text-rizoma-black"
           style={{ fontFamily: "Inter_400Regular" }}
@@ -51,7 +54,7 @@ export default function LoginScreen() {
 
       <View className="mt-6">
         <RizomaButton
-          label="Continuar"
+          label="Iniciar sesión"
           onPress={() => {
             if (!email.trim() || !email.includes("@")) {
               setError("Introduce un email válido.");
