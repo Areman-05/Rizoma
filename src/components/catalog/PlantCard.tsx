@@ -21,7 +21,7 @@ export function PlantCard({
   compact = false,
 }: PlantCardProps) {
   const percent = plant.salePercent ?? salePercent(plant.price, plant.originalPrice);
-  const imageHeight = compact ? "h-28" : "h-40";
+  const imageHeight = compact ? 112 : 160;
 
   return (
     <PressableScale onPress={onPress} className="mb-4 flex-1">
@@ -41,9 +41,13 @@ export function PlantCard({
           </View>
         ) : null}
         <Pressable
-          onPress={onToggleWishlist}
+          onPress={(event) => {
+            event.stopPropagation?.();
+            onToggleWishlist?.();
+          }}
           accessibilityLabel="Favorito"
           accessibilityRole="button"
+          hitSlop={8}
           className="absolute right-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-full bg-white"
         >
           <Heart
@@ -52,7 +56,11 @@ export function PlantCard({
             fill={wishlisted ? colors.brand : "transparent"}
           />
         </Pressable>
-        <Image source={{ uri: plant.image }} className={`${imageHeight} w-full`} resizeMode="contain" />
+        <Image
+          source={{ uri: plant.image }}
+          style={{ width: "100%", height: imageHeight }}
+          resizeMode="cover"
+        />
       </View>
 
       <View className="mt-2 flex-row items-center gap-1">

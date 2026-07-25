@@ -1,15 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
-import { Link, router } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import { Image, Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
 import { MapPin, Bell } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
@@ -24,8 +15,6 @@ import { useShop } from "@/src/store/ShopContext";
 import { plantsByCategory } from "@/src/utils/catalogFilters";
 import { loadProfileName } from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
-
-const promoWidth = Dimensions.get("window").width - 26;
 
 const promos = [
   { id: "p1", title: "Hasta 60% descuento", subtitle: "Oferta activa en interiores", plantIndex: 0 },
@@ -46,8 +35,8 @@ export default function HomeScreen() {
   const [secondsLeft, setSecondsLeft] = useState(2 * 3600 + 12 * 60);
   const [promoIndex, setPromoIndex] = useState(0);
   const [profileName, setProfileName] = useState("amante de las plantas");
-  const promoRef = useRef<FlatList<(typeof promos)[number]>>(null);
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
+  const activePromo = promos[promoIndex];
 
   useEffect(() => {
     loadProfileName().then((name) => setProfileName(name.toLowerCase()));
@@ -60,16 +49,18 @@ export default function HomeScreen() {
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const auto = setInterval(() => {
+      setPromoIndex((prev) => (prev + 1) % promos.length);
+    }, 3500);
+    return () => clearInterval(auto);
+  }, []);
+
   const activeCategory = plantCategories.find((item) => item.id === categoryId) ?? plantCategories[0];
   const featured = useMemo(
     () => plantsByCategory(plants, activeCategory.filter).slice(0, 6),
     [activeCategory.filter],
   );
-
-  const onPromoScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / promoWidth);
-    setPromoIndex(index);
-  };
 
   return (
     <Screen scroll>
@@ -119,39 +110,32 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      <FlatList
-        ref={promoRef}
-        data={promos}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={onPromoScroll}
-        scrollEventThrottle={16}
-        className="mt-3"
-        renderItem={({ item }) => (
-          <View style={{ width: promoWidth }} className="flex-row items-center overflow-hidden rounded-3xl bg-rizoma-brandSoft p-4">
-            <View className="flex-1 pr-3">
-              <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-                {item.subtitle}
-              </Text>
-              <Text className="mt-1 text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-                {item.title}
-              </Text>
-            </View>
-            <Image source={{ uri: plants[item.plantIndex].image }} className="h-24 w-24" resizeMode="contain" />
+      <Pressable
+        className="mt-3 overflow-hidden rounded-3xl bg-rizoma-brandSoft"
+        onPress={() => router.push(`/plants/${plants[activePromo.plantIndex].id}`)}
+      >
+        <View className="flex-row items-stretch">
+          <View className="flex-1 justify-center p-4 pr-2">
+            <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+              {activePromo.subtitle}
+            </Text>
+            <Text className="mt-1 text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+              {activePromo.title}
+            </Text>
           </View>
-        )}
-      />
+          <Image
+            source={{ uri: plants[activePromo.plantIndex].image }}
+            style={{ width: 128, height: 128 }}
+            resizeMode="cover"
+          />
+        </View>
+      </Pressable>
       <View className="mt-3 flex-row items-center gap-2">
         {promos.map((item, index) => (
           <Pressable
             key={item.id}
             accessibilityLabel={`Promo ${index + 1}`}
-            onPress={() => {
-              promoRef.current?.scrollToIndex({ index, animated: true });
-              setPromoIndex(index);
-            }}
+            onPress={() => setPromoIndex(index)}
             className={`h-2 rounded-full ${index === promoIndex ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-gray"}`}
           />
         ))}
@@ -196,15 +180,12 @@ export default function HomeScreen() {
         <View className="mt-3 flex-row flex-wrap" style={{ gap: 12 }}>
           {featured.map((item) => (
             <View key={item.id} style={{ width: "48%" }}>
-              <Link href={`/plants/${item.id}`} asChild>
-                <Pressable>
-                  <PlantCard
-                    plant={item}
-                    wishlisted={isInWishlist(item.id)}
-                    onToggleWishlist={() => toggleWishlist(item)}
-                  />
-                </Pressable>
-              </Link>
+              <PlantCard
+                plant={item}
+                wishlisted={isInWishlist(item.id)}
+                onToggleWishlist={() => toggleWishlist(item)}
+                onPress={() => router.push(`/plants/${item.id}`)}
+              />
             </View>
           ))}
         </View>

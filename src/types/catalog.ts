@@ -2,6 +2,14 @@ export type PlantDifficulty = "easy" | "medium" | "advanced";
 
 export type PlantLight = "low" | "medium" | "high";
 
+export interface PlantReview {
+  id: string;
+  author: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 export interface Plant {
   id: string;
   name: string;
@@ -18,4 +26,5 @@ export interface Plant {
   description: string;
   badge?: string;
   salePercent?: number;
+  reviews: PlantReview[];
 }

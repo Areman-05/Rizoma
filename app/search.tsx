@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
-import { Link, router } from "expo-router";
+import { FlatList, Text, View } from "react-native";
+import { router } from "expo-router";
 import { searchPlants } from "@/src/data/plants";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { Screen } from "@/src/components/ui/Screen";
@@ -18,14 +18,14 @@ export default function SearchScreen() {
     <Screen>
       <ScreenHeader title="Buscar" />
       <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-        Nombre comun, latin o badge.
+        Nombre común, latín o badge.
       </Text>
 
       <LeafySearchBar
         value={query}
         onChangeText={setQuery}
         onScanPress={() => router.push("/scan")}
-        placeholder="Ej. Monstera, pet friendly..."
+        placeholder="Ej. Costilla de Adán, pet friendly..."
       />
 
       <FlatList
@@ -36,22 +36,19 @@ export default function SearchScreen() {
         className="mt-4"
         renderItem={({ item }) => (
           <View className="flex-1">
-            <Link href={`/plants/${item.id}`} asChild>
-              <Pressable>
-                <PlantCard
-                  plant={item}
-                  compact
-                  wishlisted={isInWishlist(item.id)}
-                  onToggleWishlist={() => toggleWishlist(item)}
-                />
-              </Pressable>
-            </Link>
+            <PlantCard
+              plant={item}
+              compact
+              wishlisted={isInWishlist(item.id)}
+              onToggleWishlist={() => toggleWishlist(item)}
+              onPress={() => router.push(`/plants/${item.id}`)}
+            />
           </View>
         )}
         ListEmptyComponent={
           <EmptyState
             title="Sin resultados"
-            description="Prueba otro termino o escanea una planta."
+            description="Prueba otro término o escanea una planta."
             actionLabel="Escanear"
             onActionPress={() => router.push("/scan")}
           />

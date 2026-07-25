@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
-import { Link, router } from "expo-router";
+import { FlatList, Text, View } from "react-native";
+import { router } from "expo-router";
 import { Heart } from "lucide-react-native";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { useShop } from "@/src/store/ShopContext";
@@ -57,15 +57,12 @@ export default function WishlistScreen() {
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <View className="flex-1">
-                <Link href={`/plants/${item.id}`} asChild>
-                  <Pressable>
-                    <PlantCard
-                      plant={item}
-                      wishlisted={isInWishlist(item.id)}
-                      onToggleWishlist={() => toggleWishlist(item)}
-                    />
-                  </Pressable>
-                </Link>
+                <PlantCard
+                  plant={item}
+                  wishlisted={isInWishlist(item.id)}
+                  onToggleWishlist={() => toggleWishlist(item)}
+                  onPress={() => router.push(`/plants/${item.id}`)}
+                />
               </View>
             )}
           />

@@ -11,3 +11,7 @@ Android Bundled 83ms node_modules\expo-router\entry.js (1 module)
 Android Bundled 77ms node_modules\expo-router\entry.js (1 module)
 | (node:34484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
 | (Use `node --trace-warnings ...` to show where the warning was created)
+| (node:34484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+| (Use `node --trace-warnings ...` to show where the warning was created)
+Android Bundled 86ms node_modules\expo-router\entry.js (1 module)
+Android Bundled 59ms node_modules\expo-router\entry.js (1 module)

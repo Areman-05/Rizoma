@@ -1,0 +1,189 @@
+const candidates = [
+  // calathea
+  "photo-1604762524889-3e2fcc145683", // already used pilea - skip in final
+  "photo-1602879946327-8b4a148c367d", // calathea pot
+  "photo-1593693311766-bf4b0d5e3e8c",
+  "photo-1614594895172-e6b5c0c0e0e0",
+  // known good plant photos
+  "photo-1485955900006-10f4d324d411", // used
+  "photo-1416879595882-3373a0480b5b", // used
+  "photo-1459411552884-841db9b3cc2a", // used
+  "photo-1509423350716-bf5707974dde", // fail
+  "photo-1592150621744-aca64f48394a", // used
+  "photo-1463320726281-696a485928c7", // used
+  "photo-1545243424-0ce743321e11", // used
+  "photo-1509423350716-97f911469427",
+  "photo-1614594975525-e45190c55d0b", // used monstera
+  "photo-1600411833183-ae5b065006bd",
+  "photo-1600411833193-ae5b065006bd", // fail alocasia
+  "photo-1593482892290-f54927ae2b7a", // fail
+  "photo-1593691509543-c55fb32e5b14", // fail
+  "photo-1459156212016-c812478e3838", // fail
+  "photo-1509937528035-ad76270b26d5", // fail
+  "photo-1632207691143-643e3f1f67c5", // fail
+  "photo-1614594895304-fe7116ac3cc6", // fail
+  // candidates to verify
+  "photo-1509423350716-97f911469427",
+  "photo-1592150621744-aca64f48394a",
+  "photo-1620127682228-2dcc6a0c0e0e",
+  "photo-1616047006789-b7af5afb8c4c",
+  "photo-1586093248292-4e1c4c0d0e0e",
+  "photo-1632207691143-643e3f1f67c5",
+  "photo-1509423350716-bf5707974dde",
+  "photo-1614594975525-e45190c55d0b",
+  "photo-1463936575829-25148e1db1b8",
+  "photo-1491147334573-44cbb4602074",
+  "photo-1520412099551-62b6bafeb5bb",
+  "photo-1558618666-fcd25c85cd64",
+  "photo-1470058869958-2a77ade41c02",
+  "photo-1487530811176-3780de880c2d",
+  "photo-1518531933037-91b2f5f229cc",
+  "photo-1438029071396-1e831a7fa6d8",
+  "photo-1616046229478-9901c5536a45",
+  "photo-1518709268805-4e9042af9f23",
+  "photo-1584589167171-541ce45f1eea",
+  "photo-1501004318641-b39e6451bec6",
+  "photo-1512428813834-c702c7702b78",
+  // new candidates from known plant photographers / classic ids
+  "photo-1453904300238-0b238b25d1e5",
+  "photo-1466781783364-36c955e42a7f",
+  "photo-1416339306562-f3d12fefd36f",
+  "photo-1485955900006-10f4d324d411",
+  "photo-1446071103084-c017f42a4e6d",
+  "photo-1459156212016-c812478e3838",
+  "photo-1463936575829-25148e1db1b8",
+  "photo-1501004318641-b39e6451bec6",
+  "photo-1416879595882-3373a0480b5b",
+  "photo-1497990516150-1e0c8f2e0e0e",
+  "photo-1592150621744-aca64f48394a",
+  "photo-1600411833183-ae5b065006bd",
+  "photo-1604762524889-3e2fcc145683",
+  "photo-1614594975525-e45190c55d0b",
+  "photo-1586093248292-4e1c4c0d0e0e",
+  // more plant ids
+  "photo-1509423350716-97f911469427",
+  "photo-1485955900006-10f4d324d411",
+  "photo-1512428813834-c702c7702b78",
+  "photo-1459411552884-841db9b3cc2a",
+  "photo-1545243424-0ce743321e11",
+  "photo-1463320726281-696a485928c7",
+  "photo-1520412099551-62b6bafeb5bb",
+  "photo-1491147334573-44cbb4602074",
+  "photo-1470058869958-2a77ade41c02",
+  "photo-1487530811176-3780de880c2d",
+  "photo-1518531933037-91b2f5f229cc",
+  "photo-1438029071396-1e831a7fa6d8",
+  "photo-1616046229478-9901c5536a45",
+  "photo-1518709268805-4e9042af9f23",
+  "photo-1584589167171-541ce45f1eea",
+  "photo-1558618666-fcd25c85cd64",
+  "photo-1466781783364-36c955e42a7f",
+  // Fresh candidates - classic houseplant shots
+  "photo-1614594975525-e45190c55d0b",
+  "photo-1604762524889-3e2fcc145683",
+  "photo-1459411552884-841db9b3cc2a",
+  "photo-1501004318641-b39e6451bec6",
+  "photo-1485955900006-10f4d324d411",
+  "photo-1416879595882-3373a0480b5b",
+  "photo-1463936575829-25148e1db1b8",
+  "photo-1491147334573-44cbb4602074",
+  "photo-1520412099551-62b6bafeb5bb",
+  "photo-1545243424-0ce743321e11",
+  "photo-1466781783364-36c955e42a7f",
+  "photo-1438029071396-1e831a7fa6d8",
+  "photo-1470058869958-2a77ade41c02",
+  "photo-1487530811176-3780de880c2d",
+  "photo-1518531933037-91b2f5f229cc",
+  "photo-1592150621744-aca64f48394a",
+  "photo-1584589167171-541ce45f1eea",
+  "photo-1512428813834-c702c7702b78",
+  "photo-1463320726281-696a485928c7",
+  // NEW to test
+  "photo-1600411833183-ae5b065006bd",
+  "photo-1602879946327-8b4a148c367d",
+  "photo-1654608904829-3e856604383d",
+  "photo-1716900336678-90935776c64d",
+  "photo-1747097950921-c470422d2a98",
+  "photo-1755504957048-a70f467ac27f",
+  "photo-1446071103084-c017f42a4e6d",
+  "photo-1416339306562-f3d12fefd36f",
+  "photo-1453904300238-0b238b25d1e5",
+  "photo-1509423350716-97f911469427",
+  "photo-1593693311766-bf4b0d5e3e8c",
+  "photo-1620127682228-2dcc6a0c0e0e",
+  "photo-1616047006789-b7af5afb8c4c",
+  "photo-1501004318641-b39e6451bec6",
+  "photo-1487700160041-babef9c3cb55",
+  "photo-1463936575829-25148e1db1b8",
+  "photo-1459411552884-841db9b3cc2a",
+  "photo-1512428813834-c702c7702b78",
+  "photo-1497990516150-1e0c8f2e0e0e",
+  "photo-1600411833183-ae5b065006bd",
+  "photo-1592150621744-aca64f48394a",
+  "photo-1545243424-0ce743321e11",
+  "photo-1463320726281-696a485928c7",
+  "photo-1520412099551-62b6bafeb5bb",
+  "photo-1491147334573-44cbb4602074",
+  "photo-1470058869958-2a77ade41c02",
+  "photo-1487530811176-3780de880c2d",
+  "photo-1518531933037-91b2f5f229cc",
+  "photo-1438029071396-1e831a7fa6d8",
+  "photo-1616046229478-9901c5536a45",
+  "photo-1518709268805-4e9042af9f23",
+  "photo-1584589167171-541ce45f1eea",
+  "photo-1558618666-fcd25c85cd64",
+  "photo-1466781783364-36c955e42a7f",
+  "photo-1487700160041-babef9c3cb55",
+  "photo-1604762524889-3e2fcc145683",
+  "photo-1614594975525-e45190c55d0b",
+  "photo-1501004318641-b39e6451bec6",
+  "photo-1485955900006-10f4d324d411",
+  "photo-1416879595882-3373a0480b5b",
+  // additional curated
+  "photo-1592150621744-aca64f48394a",
+  "photo-1602879946327-8b4a148c367d",
+  "photo-1654608904829-3e856604383d",
+  "photo-1716900336678-90935776c64d",
+  "photo-1747097950921-c470422d2a98",
+  "photo-1755504957048-a70f467ac27f",
+  "photo-1446071103084-c017f42a4e6d",
+  "photo-1416339306562-f3d12fefd36f",
+  "photo-1453904300238-0b238b25d1e5",
+  "photo-1487700160041-babef9c3cb55",
+  "photo-1509423350716-97f911469427",
+  "photo-1592150621744-aca64f48394a",
+  "photo-1600411833183-ae5b065006bd",
+  "photo-1620127682228-2dcc6a0c0e0e",
+  "photo-1616047006789-b7af5afb8c4c",
+  "photo-1497990516150-1e0c8f2e0e0e",
+  "photo-1593693311766-bf4b0d5e3e8c",
+];
+
+const used = new Set([
+  "photo-1614594975525-e45190c55d0b",
+  "photo-1459411552884-841db9b3cc2a",
+  "photo-1604762524889-3e2fcc145683",
+  "photo-1584589167171-541ce45f1eea",
+  "photo-1463320726281-696a485928c7",
+  "photo-1512428813834-c702c7702b78",
+  "photo-1501004318641-b39e6451bec6",
+  "photo and more",
+]);
+
+const unique = [...new Set(candidates)];
+
+async function check(id) {
+  const url = `https://images.unsplash.com/${id}?auto=format&fit=crop&w=200&q=60`;
+  try {
+    const res = await fetch(url, { method: "HEAD", redirect: "follow" });
+    return { id, ok: res.ok, status: res.status };
+  } catch (e) {
+    return { id, ok: false, status: String(e.message || e) };
+  }
+}
+
+for (const id of unique) {
+  const r = await check(id);
+  if (r.ok) console.log("OK", id);
+  else console.log("FAIL", r.status, id);
+}

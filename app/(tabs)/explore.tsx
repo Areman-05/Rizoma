@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { FlatList, Text, View } from "react-native";
+import { router } from "expo-router";
 import { SearchX } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
@@ -72,15 +72,12 @@ export default function ExploreScreen() {
         columnWrapperStyle={{ gap: 12 }}
         renderItem={({ item }) => (
           <View className="flex-1">
-            <Link href={`/plants/${item.id}`} asChild>
-              <Pressable>
-                <PlantCard
-                  plant={item}
-                  wishlisted={isInWishlist(item.id)}
-                  onToggleWishlist={() => toggleWishlist(item)}
-                />
-              </Pressable>
-            </Link>
+            <PlantCard
+              plant={item}
+              wishlisted={isInWishlist(item.id)}
+              onToggleWishlist={() => toggleWishlist(item)}
+              onPress={() => router.push(`/plants/${item.id}`)}
+            />
           </View>
         )}
         ListEmptyComponent={

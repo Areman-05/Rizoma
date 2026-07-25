@@ -1,8 +1,5 @@
 import { ReactNode } from "react";
 import { Pressable } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface PressableScaleProps {
   children: ReactNode;
@@ -10,25 +7,16 @@ interface PressableScaleProps {
   className?: string;
 }
 
+/** Pressable estable (sin Reanimated) para evitar freezes/SIGSEGV en Expo Go. */
 export function PressableScale({ children, onPress, className }: PressableScaleProps) {
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   return (
-    <AnimatedPressable
+    <Pressable
       className={className}
       onPress={onPress}
-      onPressIn={() => {
-        scale.value = withSpring(0.97);
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1);
-      }}
-      style={animatedStyle}
+      disabled={!onPress}
+      style={({ pressed }) => ({ opacity: pressed && onPress ? 0.92 : 1, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}
     >
       {children}
-    </AnimatedPressable>
+    </Pressable>
   );
 }
