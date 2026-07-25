@@ -7,10 +7,17 @@ interface ScreenHeaderProps {
   title: string;
   showBack?: boolean;
   showBell?: boolean;
+  showNotificationBadge?: boolean;
   onBellPress?: () => void;
 }
 
-export function ScreenHeader({ title, showBack = true, showBell = true, onBellPress }: ScreenHeaderProps) {
+export function ScreenHeader({
+  title,
+  showBack = true,
+  showBell = true,
+  showNotificationBadge = false,
+  onBellPress,
+}: ScreenHeaderProps) {
   return (
     <View className="mb-4 flex-row items-center justify-between">
       {showBack ? (
@@ -24,12 +31,17 @@ export function ScreenHeader({ title, showBack = true, showBell = true, onBellPr
         {title}
       </Text>
       {showBell ? (
-        <CircularIconButton
-          accessibilityLabel="Notificaciones"
-          onPress={onBellPress ?? (() => router.push("/notifications"))}
-        >
-          <Bell size={18} color={iconTone.dark} />
-        </CircularIconButton>
+        <View>
+          <CircularIconButton
+            accessibilityLabel="Notificaciones"
+            onPress={onBellPress ?? (() => router.push("/notifications"))}
+          >
+            <Bell size={18} color={iconTone.dark} />
+          </CircularIconButton>
+          {showNotificationBadge ? (
+            <View className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-rizoma-red" />
+          ) : null}
+        </View>
       ) : (
         <View className="h-10 w-10" />
       )}
