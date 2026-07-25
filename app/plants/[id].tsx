@@ -41,7 +41,7 @@ export default function PlantDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
-      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-36" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerClassName="px-[13px] pb-36" showsVerticalScrollIndicator={false}>
         <View className="mt-2 flex-row items-center justify-between">
           <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
             <ChevronLeft size={20} color={colors.black} />
@@ -62,8 +62,8 @@ export default function PlantDetailScreen() {
 
         <View className="mt-2 flex-row items-center gap-1">
           <Star size={14} color={colors.yellow} fill={colors.yellow} />
-          <Text className="text-sm text-rizoma-secondaryText">
-            {plant.rating.toFixed(1)} ({plant.reviewCount})
+          <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+            {plant.rating.toFixed(1)} ({plant.reviewCount} reseñas)
           </Text>
         </View>
 
@@ -104,7 +104,7 @@ export default function PlantDetailScreen() {
         </ScrollView>
       </ScrollView>
 
-      <View className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-4 pb-6 pt-3">
+      <View className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pb-6 pt-3">
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
             Comprar
@@ -115,7 +115,7 @@ export default function PlantDetailScreen() {
               onPress={() => setQty((q) => Math.max(1, q - 1))}
               className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
             >
-              <Text>-</Text>
+              <Text style={{ fontFamily: "Inter_700Bold" }}>-</Text>
             </Pressable>
             <Text style={{ fontFamily: "Inter_700Bold" }}>{qty}</Text>
             <Pressable
@@ -123,7 +123,7 @@ export default function PlantDetailScreen() {
               onPress={() => setQty((q) => q + 1)}
               className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
             >
-              <Text>+</Text>
+              <Text style={{ fontFamily: "Inter_700Bold" }}>+</Text>
             </Pressable>
           </View>
         </View>
