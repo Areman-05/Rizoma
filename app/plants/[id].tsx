@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { Heart, ShoppingBag, Star } from "lucide-react-native";
+import { Heart, Minus, Plus, ShoppingBag, Star } from "lucide-react-native";
 import { getPlantById } from "@/src/data/plants";
 import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
@@ -17,8 +17,8 @@ import { colors } from "@/src/theme/tokens";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChevronLeft } from "lucide-react-native";
 
-/** Altura del chrome sticky (sin safe-area): pt + cantidad + CTAs + “Mi Jardín”. */
-const BOTTOM_BAR_CONTENT_HEIGHT = 172;
+/** Altura del chrome sticky (sin safe-area): fila única + enlace Mi Jardín. */
+const BOTTOM_BAR_CONTENT_HEIGHT = 124;
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,7 +28,7 @@ export default function PlantDetailScreen() {
   const { addToGarden } = useGarden();
   const [qty, setQty] = useState(1);
   const [addedToast, setAddedToast] = useState<string | null>(null);
-  const bottomBarPadding = Math.max(insets.bottom, 16);
+  const bottomBarPadding = Math.max(insets.bottom, 12);
   const bottomBarHeight = BOTTOM_BAR_CONTENT_HEIGHT + bottomBarPadding;
 
   if (!plant) {
@@ -56,7 +56,7 @@ export default function PlantDetailScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: bottomBarHeight + 16 }}
+        contentContainerStyle={{ paddingBottom: bottomBarHeight + 20 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="relative">
@@ -191,30 +191,32 @@ export default function PlantDetailScreen() {
         className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-3"
         style={{ paddingBottom: bottomBarPadding }}
       >
-        <View className="mb-3 flex-row items-center justify-between">
-          <Text className="text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
-            Cantidad
-          </Text>
-          <View className="flex-row items-center gap-3">
+        <View className="flex-row items-center gap-2.5">
+          <View className="h-14 flex-row items-center rounded-full bg-rizoma-gray px-1.5">
             <Pressable
               accessibilityLabel="Reducir cantidad"
               onPress={() => setQty((q) => Math.max(1, q - 1))}
-              className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
+              className="h-10 w-10 items-center justify-center rounded-full"
+              hitSlop={6}
             >
-              <Text style={{ fontFamily: "Inter_700Bold" }}>-</Text>
+              <Minus size={16} color={colors.black} />
             </Pressable>
-            <Text style={{ fontFamily: "Inter_700Bold" }}>{qty}</Text>
+            <Text
+              className="min-w-[28px] text-center text-base text-rizoma-black"
+              style={{ fontFamily: "Inter_700Bold" }}
+            >
+              {qty}
+            </Text>
             <Pressable
               accessibilityLabel="Aumentar cantidad"
               onPress={() => setQty((q) => q + 1)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-rizoma-gray"
+              className="h-10 w-10 items-center justify-center rounded-full"
+              hitSlop={6}
             >
-              <Text style={{ fontFamily: "Inter_700Bold" }}>+</Text>
+              <Plus size={16} color={colors.black} />
             </Pressable>
           </View>
-        </View>
 
-        <View className="flex-row gap-3">
           <Pressable
             accessibilityLabel="Añadir a favoritos"
             onPress={() => {
@@ -223,8 +225,9 @@ export default function PlantDetailScreen() {
             }}
             className="h-14 w-14 items-center justify-center rounded-full border border-rizoma-border"
           >
-            <Heart size={20} color={saved ? colors.brand : colors.black} fill={saved ? colors.brand : "transparent"} />
+            <Heart size={18} color={saved ? colors.brand : colors.black} fill={saved ? colors.brand : "transparent"} />
           </Pressable>
+
           <Pressable
             accessibilityLabel="Añadir al carrito"
             onPress={() => {
@@ -233,8 +236,9 @@ export default function PlantDetailScreen() {
             }}
             className="h-14 w-14 items-center justify-center rounded-full border border-rizoma-border"
           >
-            <ShoppingBag size={20} color={colors.black} />
+            <ShoppingBag size={18} color={colors.black} />
           </Pressable>
+
           <View className="flex-1">
             <RizomaButton
               label="Comprar ahora"
@@ -245,7 +249,8 @@ export default function PlantDetailScreen() {
             />
           </View>
         </View>
-        <Pressable onPress={() => addToGarden(plant)} className="mt-2 py-2">
+
+        <Pressable onPress={() => addToGarden(plant)} className="mt-1.5 py-1.5">
           <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
             Guardar en Mi Jardín
           </Text>

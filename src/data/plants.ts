@@ -2,10 +2,11 @@ import { Plant, PlantReview } from "@/src/types/catalog";
 
 /**
  * Fotos Unsplash verificadas (una distinta por planta).
- * Formato cover forzando crop cuadrado para llenar el marco.
+ * Crop estable + calidad fija para cards y detalle.
  */
 function cover(id: string) {
-  return `https://images.unsplash.com/${id}?auto=format&fit=crop&w=900&h=900&q=80`;
+  const photo = id.startsWith("photo-") ? id : `photo-${id}`;
+  return `https://images.unsplash.com/${photo}?auto=format&fit=crop&w=800&h=800&q=80`;
 }
 
 const catalogSeed: Array<
@@ -33,7 +34,7 @@ const catalogSeed: Array<
     name: "Calatea orbifolia",
     latinName: "Goeppertia orbifolia",
     price: 59.9,
-    image: cover("photo-1509423350716-bf5707974dde"),
+    image: cover("photo-1602879946327-8b4a148c367d"),
     light: "low",
     watering: "2x week",
     petFriendly: true,
@@ -71,7 +72,7 @@ const catalogSeed: Array<
     name: "Lengua de suegra",
     latinName: "Dracaena trifasciata",
     price: 34.9,
-    image: cover("photo-1593482892290-f54927ae2b7a"),
+    image: cover("photo-1654608904829-3e856604383d"),
     light: "low",
     watering: "biweekly",
     petFriendly: false,
@@ -96,7 +97,7 @@ const catalogSeed: Array<
     name: "Oreja de elefante",
     latinName: "Alocasia amazonica",
     price: 42.5,
-    image: cover("photo-1600411833193-ae5b065006bd"),
+    image: cover("photo-1687682377416-52068eaef061"),
     light: "medium",
     watering: "weekly",
     petFriendly: false,
@@ -121,7 +122,7 @@ const catalogSeed: Array<
     name: "Lirio de la paz",
     latinName: "Spathiphyllum wallisii",
     price: 36.0,
-    image: cover("photo-1593691509543-c55fb32e5b14"),
+    image: cover("photo-1770771759998-193f7023faee"),
     light: "low",
     watering: "weekly",
     petFriendly: false,
@@ -183,7 +184,7 @@ const catalogSeed: Array<
     name: "Pilea mini",
     latinName: "Pilea peperomioides Mini",
     price: 27.5,
-    image: cover("photo-1459156212016-c812478e3838"),
+    image: cover("photo-1600411832986-5a4477b64a1c"),
     light: "medium",
     watering: "weekly",
     petFriendly: true,
@@ -307,7 +308,7 @@ const catalogSeed: Array<
     name: "Anturio rojo",
     latinName: "Anthurium andraeanum",
     price: 52.0,
-    image: cover("photo-1509937528035-ad76270b26d5"),
+    image: cover("photo-1773809407796-475cb516d7ec"),
     light: "medium",
     watering: "weekly",
     petFriendly: false,
@@ -357,7 +358,7 @@ const catalogSeed: Array<
     name: "Poto neón",
     latinName: "Epipremnum aureum Neon",
     price: 26.9,
-    image: cover("photo-1632207691143-643e3f1f67c5"),
+    image: cover("photo-1598880940080-ff9a29891b85"),
     light: "medium",
     watering: "weekly",
     petFriendly: false,
@@ -370,7 +371,7 @@ const catalogSeed: Array<
     name: "Trébol púrpura",
     latinName: "Oxalis triangularis",
     price: 27.0,
-    image: cover("photo-1614594895304-fe7116ac3cc6"),
+    image: cover("photo-1722823107288-83d56e4c9853"),
     light: "medium",
     watering: "weekly",
     petFriendly: true,

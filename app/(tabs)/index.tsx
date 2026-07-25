@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Easing, Image, Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import { MapPin, Bell } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
@@ -22,6 +22,8 @@ const promos = [
   { id: "p3", title: "Envío gratis", subtitle: "Pedidos desde 40 EUR", plantIndex: 2 },
 ];
 
+const PROMO_TRANSITION_MS = 280;
+
 function formatCountdown(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -37,6 +39,54 @@ export default function HomeScreen() {
   const [profileName, setProfileName] = useState("amante de las plantas");
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
   const activePromo = promos[promoIndex];
+  const promoOpacity = useRef(new Animated.Value(1)).current;
+  const promoTranslate = useRef(new Animated.Value(0)).current;
+  const promoIndexRef = useRef(0);
+  const animatingRef = useRef(false);
+
+  const goToPromo = (nextIndex: number) => {
+    const normalized = ((nextIndex % promos.length) + promos.length) % promos.length;
+    if (normalized === promoIndexRef.current || animatingRef.current) return;
+
+    animatingRef.current = true;
+    Animated.parallel([
+      Animated.timing(promoOpacity, {
+        toValue: 0,
+        duration: PROMO_TRANSITION_MS / 2,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(promoTranslate, {
+        toValue: -18,
+        duration: PROMO_TRANSITION_MS / 2,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      promoIndexRef.current = normalized;
+      setPromoIndex(normalized);
+      promoTranslate.setValue(18);
+      Animated.parallel([
+        Animated.timing(promoOpacity, {
+          toValue: 1,
+          duration: PROMO_TRANSITION_MS / 2,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(promoTranslate, {
+          toValue: 0,
+          duration: PROMO_TRANSITION_MS / 2,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        animatingRef.current = false;
+      });
+    });
+  };
+
+  const goToPromoRef = useRef(goToPromo);
+  goToPromoRef.current = goToPromo;
 
   useEffect(() => {
     loadProfileName().then((name) => setProfileName(name.toLowerCase()));
@@ -51,7 +101,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     const auto = setInterval(() => {
-      setPromoIndex((prev) => (prev + 1) % promos.length);
+      goToPromoRef.current(promoIndexRef.current + 1);
     }, 3500);
     return () => clearInterval(auto);
   }, []);
@@ -114,7 +164,13 @@ export default function HomeScreen() {
         className="mt-3 overflow-hidden rounded-3xl bg-rizoma-brandSoft"
         onPress={() => router.push(`/plants/${plants[activePromo.plantIndex].id}`)}
       >
-        <View className="flex-row items-stretch">
+        <Animated.View
+          style={{
+            opacity: promoOpacity,
+            transform: [{ translateX: promoTranslate }],
+          }}
+          className="flex-row items-stretch"
+        >
           <View className="flex-1 justify-center p-4 pr-2">
             <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
               {activePromo.subtitle}
@@ -128,14 +184,14 @@ export default function HomeScreen() {
             style={{ width: 128, height: 128 }}
             resizeMode="cover"
           />
-        </View>
+        </Animated.View>
       </Pressable>
       <View className="mt-3 flex-row items-center gap-2">
         {promos.map((item, index) => (
           <Pressable
             key={item.id}
             accessibilityLabel={`Promo ${index + 1}`}
-            onPress={() => setPromoIndex(index)}
+            onPress={() => goToPromo(index)}
             className={`h-2 rounded-full ${index === promoIndex ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-gray"}`}
           />
         ))}
