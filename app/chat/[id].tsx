@@ -1,8 +1,10 @@
 import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { MessageCircle, Send } from "lucide-react-native";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
+import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
 import { colors } from "@/src/theme/tokens";
 
 const threadMeta: Record<string, { title: string; seed: string[] }> = {
@@ -55,21 +57,19 @@ export default function ChatThreadScreen() {
 
   return (
     <Screen>
-      <ScreenHeader title={meta.title} />
+      <ScreenHeader title={meta.title} showBell={false} />
       <FlatList
         data={messages}
         keyExtractor={(item) => item.id}
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 12, gap: 10 }}
+        contentContainerStyle={{ paddingBottom: 16, gap: 10, flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <View className="mt-8 items-center px-4">
-            <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              Empieza la conversación
-            </Text>
-            <Text className="mt-2 text-center text-sm text-rizoma-secondaryText">
-              Pregunta por envíos, riegos o disponibilidad.
-            </Text>
-          </View>
+          <EmptyState
+            title="Empieza la conversación"
+            description="Pregunta por envíos, riegos o disponibilidad."
+            icon={<MessageCircle size={24} color={emptyIconTone} />}
+          />
         }
         renderItem={({ item }) => (
           <View
@@ -83,6 +83,7 @@ export default function ChatThreadScreen() {
             </Text>
             <Text
               className={`mt-1 text-[10px] ${item.from === "user" ? "text-white/80" : "text-rizoma-grayText"}`}
+              style={{ fontFamily: "Inter_500Medium" }}
             >
               {item.at}
             </Text>
@@ -98,7 +99,7 @@ export default function ChatThreadScreen() {
           ) : null
         }
       />
-      <View className="flex-row items-center gap-2 border-t border-rizoma-border pt-3">
+      <View className="flex-row items-center gap-2 border-t border-rizoma-border pb-2 pt-3">
         <TextInput
           value={input}
           onChangeText={setInput}
@@ -110,11 +111,9 @@ export default function ChatThreadScreen() {
         <Pressable
           accessibilityLabel="Enviar mensaje"
           onPress={send}
-          className="rounded-full bg-rizoma-brand px-4 py-3"
+          className="h-12 w-12 items-center justify-center rounded-full bg-rizoma-brand"
         >
-          <Text className="text-white" style={{ fontFamily: "Inter_700Bold" }}>
-            Enviar
-          </Text>
+          <Send size={18} color="#FFFFFF" />
         </Pressable>
       </View>
     </Screen>
