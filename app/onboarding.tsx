@@ -1,23 +1,28 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
+import { Leaf, ScanLine, Sun } from "lucide-react-native";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
 import { markOnboardingDone } from "@/src/store/persistence";
+import { colors } from "@/src/theme/tokens";
 
 const slides = [
   {
     title: "Bienvenido a Rizoma",
     body: "Un boutique digital de plantas premium pensado para hogares urbanos.",
+    Icon: Leaf,
   },
   {
     title: "Cuidado con criterio",
     body: "Luz, riego y pet-friendly claros en cada ficha para comprar con confianza.",
+    Icon: Sun,
   },
   {
     title: "Escanea y descubre",
     body: "Identifica especies y encuentra alternativas similares en el catálogo.",
+    Icon: ScanLine,
   },
 ];
 
@@ -25,6 +30,7 @@ export default function OnboardingScreen() {
   const [index, setIndex] = useState(0);
   const slide = slides[index];
   const isLast = index === slides.length - 1;
+  const Icon = slide.Icon;
 
   const finish = async () => {
     await markOnboardingDone();
@@ -43,11 +49,17 @@ export default function OnboardingScreen() {
           </Pressable>
         </View>
 
-        <View className="rounded-3xl bg-rizoma-gray p-6">
-          <Text className="text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+        <View className="items-center rounded-3xl bg-rizoma-gray p-6">
+          <View className="mb-5 h-20 w-20 items-center justify-center rounded-full bg-white">
+            <Icon size={36} color={colors.brand} />
+          </View>
+          <Text className="text-center text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
             {slide.title}
           </Text>
-          <Text className="mt-3 text-base leading-6 text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+          <Text
+            className="mt-3 text-center text-base leading-6 text-rizoma-secondaryText"
+            style={{ fontFamily: "Inter_400Regular" }}
+          >
             {slide.body}
           </Text>
         </View>
@@ -57,7 +69,7 @@ export default function OnboardingScreen() {
             {slides.map((item, dotIndex) => (
               <View
                 key={item.title}
-                className={`h-2 rounded-full ${dotIndex === index ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-border"}`}
+                className={`h-2 rounded-full ${dotIndex === index ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-gray"}`}
               />
             ))}
           </View>
