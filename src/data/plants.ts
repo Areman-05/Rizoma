@@ -392,25 +392,90 @@ const catalogSeed: Array<
   },
 ];
 
-const reviewAuthors = ["Laura M.", "Carlos R.", "Elena P.", "Diego S.", "María V.", "Javier T."];
-const reviewComments = [
-  "Llegó impecable y se veía exactamente como en la foto.",
-  "Muy buena calidad. Ya está aclimatada en casa.",
-  "Embalaje cuidadoso y planta sana. Repetiré.",
-  "Preciosa. El tamaño es generoso para el precio.",
-  "Fácil de cuidar y queda genial en el salón.",
+const reviewAuthors = [
+  "Laura M.",
+  "Carlos R.",
+  "Elena P.",
+  "Diego S.",
+  "María V.",
+  "Javier T.",
+  "Nuria G.",
+  "Álvaro C.",
+  "Sofía H.",
+  "Pablo N.",
+  "Inés L.",
+  "Hugo B.",
+  "Carmen D.",
+  "Mateo F.",
+  "Lucía Q.",
+  "Andrés W.",
+  "Paula K.",
+  "Raúl E.",
+  "Beatriz O.",
+  "Iván Z.",
+  "Clara Y.",
+  "Sergio U.",
+  "Aitana J.",
+  "Bruno X.",
+  "Valeria I.",
+  "Óscar A.",
+  "Marta S.",
+  "Nicolás P.",
+  "Rocío T.",
+  "Guillermo V.",
+  "Iris C.",
+  "Felipe M.",
+  "Noelia R.",
+  "Tomás G.",
 ];
 
-function buildReviews(plantId: string, index: number, count: number): PlantReview[] {
+const reviewDates = [
+  "Hace 1 día",
+  "Hace 2 días",
+  "Hace 4 días",
+  "Hace 1 semana",
+  "Hace 10 días",
+  "Hace 2 semanas",
+  "Hace 3 semanas",
+  "Hace 1 mes",
+  "Hace 5 semanas",
+  "Hace 2 meses",
+];
+
+const reviewRatings = [5, 4, 5, 3, 5, 4, 5, 4, 3, 5, 4, 5, 2, 5, 4];
+
+function plantComments(name: string): string[] {
+  return [
+    `${name}: llegó impecable y se veía exactamente como en la foto.`,
+    `Muy contenta con mi ${name}. Ya está aclimatada en el salón.`,
+    `Embalaje cuidadoso y planta sana. ${name} venía sin hojas dañadas.`,
+    `Bonita, sí, pero esperaba un poco más de tamaño por el precio.`,
+    `Fácil de cuidar. ${name} queda genial junto a la ventana.`,
+    `Hojas firmes y color vivo. Recomiendo Rizoma sin dudarlo.`,
+    `Tardó un día más de lo previsto, pero ${name} llegó perfecta.`,
+    `Ideal para principiantes. Riego suave y listo.`,
+    `La usé para regalar y fue un acierto total.`,
+    `Buen porte, aunque una hoja llegó un poco doblada. Nada grave.`,
+    `Calidad boutique de verdad. Se nota en las raíces y el sustrato.`,
+    `En dos semanas ya empuja hoja nueva. Muy viva.`,
+    `No es la más barata, pero ${name} justifica el precio.`,
+    `Perfecta para un rincón con poca luz. Sin drama.`,
+    `Detalle: venía con guía de cuidados clara. Se agradece.`,
+  ];
+}
+
+function buildReviews(plantId: string, plantName: string, index: number, count: number): PlantReview[] {
   const reviews: PlantReview[] = [];
+  const comments = plantComments(plantName);
   const shown = Math.min(3, Math.max(2, Math.floor(count / 80)));
   for (let i = 0; i < shown; i += 1) {
+    const slot = index * 3 + i * 7;
     reviews.push({
       id: `${plantId}-r${i}`,
-      author: reviewAuthors[(index + i) % reviewAuthors.length],
-      rating: 4 + ((index + i) % 2),
-      comment: reviewComments[(index + i) % reviewComments.length],
-      date: i === 0 ? "Hace 2 días" : i === 1 ? "Hace 1 semana" : "Hace 3 semanas",
+      author: reviewAuthors[(slot + plantId.length) % reviewAuthors.length],
+      rating: reviewRatings[(slot + i) % reviewRatings.length],
+      comment: comments[(slot + i * 2) % comments.length],
+      date: reviewDates[(slot + i * 3) % reviewDates.length],
     });
   }
   return reviews;
@@ -419,7 +484,7 @@ function buildReviews(plantId: string, index: number, count: number): PlantRevie
 export const plants: Plant[] = catalogSeed.map((item, index) => {
   const originalPrice =
     item.originalPrice ?? (index % 3 === 0 ? Number((item.price * 1.35).toFixed(2)) : undefined);
-  const rating = item.rating ?? Number((4.5 + (index % 5) * 0.1).toFixed(1));
+  const rating = item.rating ?? Number((3.8 + (index % 7) * 0.15).toFixed(1));
   const reviewCount = item.reviewCount ?? 180 + index * 23;
   const salePercent =
     originalPrice && originalPrice > item.price
@@ -432,7 +497,7 @@ export const plants: Plant[] = catalogSeed.map((item, index) => {
     rating,
     reviewCount,
     salePercent,
-    reviews: buildReviews(item.id, index, reviewCount),
+    reviews: buildReviews(item.id, item.name, index, reviewCount),
   };
 });
 

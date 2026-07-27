@@ -24,68 +24,70 @@ export function PlantCard({
   const imageHeight = compact ? 112 : 160;
 
   return (
-    <PressableScale onPress={onPress} className="mb-4 flex-1">
-      <View className="overflow-hidden rounded-3xl bg-rizoma-gray" style={elevation.soft}>
-        {percent ? (
-          <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-red px-2 py-1">
-            <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
-              −{percent}%
-            </Text>
-          </View>
-        ) : null}
-        {plant.badge && !percent ? (
-          <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-brand px-2 py-1">
-            <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
-              {plant.badge}
-            </Text>
-          </View>
-        ) : null}
-        <Pressable
-          onPress={(event) => {
-            event.stopPropagation?.();
-            onToggleWishlist?.();
-          }}
-          accessibilityLabel="Favorito"
-          accessibilityRole="button"
-          hitSlop={8}
-          className="absolute right-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-full bg-white"
-        >
-          <Heart
-            size={16}
-            color={wishlisted ? colors.brand : colors.black}
-            fill={wishlisted ? colors.brand : "transparent"}
+    <View className="mb-4 w-full">
+      <PressableScale onPress={onPress}>
+        <View className="overflow-hidden rounded-3xl bg-rizoma-gray" style={elevation.soft}>
+          {percent ? (
+            <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-red px-2 py-1">
+              <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+                −{percent}%
+              </Text>
+            </View>
+          ) : null}
+          {plant.badge && !percent ? (
+            <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-brand px-2 py-1">
+              <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
+                {plant.badge}
+              </Text>
+            </View>
+          ) : null}
+          <Pressable
+            onPress={(event) => {
+              event.stopPropagation?.();
+              onToggleWishlist?.();
+            }}
+            accessibilityLabel="Favorito"
+            accessibilityRole="button"
+            hitSlop={8}
+            className="absolute right-3 top-3 z-10 h-8 w-8 items-center justify-center rounded-full bg-white"
+          >
+            <Heart
+              size={16}
+              color={wishlisted ? colors.brand : colors.black}
+              fill={wishlisted ? colors.brand : "transparent"}
+            />
+          </Pressable>
+          <Image
+            source={{ uri: plant.image }}
+            style={{ width: "100%", height: imageHeight }}
+            resizeMode="cover"
           />
-        </Pressable>
-        <Image
-          source={{ uri: plant.image }}
-          style={{ width: "100%", height: imageHeight }}
-          resizeMode="cover"
-        />
-      </View>
+        </View>
 
-      <View className="mt-2 flex-row items-center gap-1">
-        <Star size={12} color={colors.yellow} fill={colors.yellow} />
-        <Text className="text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-          {plant.rating.toFixed(1)} ({plant.reviewCount})
-        </Text>
-      </View>
-      <Text
-        className={`mt-1 text-rizoma-black ${compact ? "text-sm" : "text-base"}`}
-        style={{ fontFamily: "Inter_700Bold" }}
-        numberOfLines={1}
-      >
-        {plant.name}
-      </Text>
-      <View className="mt-1 flex-row items-center gap-2">
-        <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-          {formatPrice(plant.price)}
-        </Text>
-        {plant.originalPrice && plant.originalPrice > plant.price ? (
-          <Text className="text-sm text-rizoma-red line-through" style={{ fontFamily: "Inter_400Regular" }}>
-            {formatPrice(plant.originalPrice)}
+        <View className="mt-2 flex-row items-center gap-1">
+          <Star size={12} color={colors.yellow} fill={colors.yellow} />
+          <Text className="text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+            {plant.rating.toFixed(1)} ({plant.reviewCount})
           </Text>
-        ) : null}
-      </View>
-    </PressableScale>
+        </View>
+        <Text
+          className={`mt-1 text-rizoma-black ${compact ? "text-sm" : "text-base"}`}
+          style={{ fontFamily: "Inter_700Bold" }}
+          numberOfLines={1}
+        >
+          {plant.name}
+        </Text>
+        <View className="mt-1 flex-row items-center gap-2">
+          <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            {formatPrice(plant.price)}
+          </Text>
+          {plant.originalPrice && plant.originalPrice > plant.price ? (
+            <Text className="text-sm text-rizoma-red line-through" style={{ fontFamily: "Inter_400Regular" }}>
+              {formatPrice(plant.originalPrice)}
+            </Text>
+          ) : null}
+        </View>
+      </PressableScale>
+    </View>
   );
 }

@@ -56,7 +56,7 @@ export default function WishlistScreen() {
             columnWrapperStyle={{ gap: 12 }}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <View className="flex-1">
+              <View style={{ flex: 1 }}>
                 <PlantCard
                   plant={item}
                   wishlisted={isInWishlist(item.id)}

@@ -71,7 +71,7 @@ export default function ExploreScreen() {
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         renderItem={({ item }) => (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             <PlantCard
               plant={item}
               wishlisted={isInWishlist(item.id)}

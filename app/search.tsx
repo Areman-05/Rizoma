@@ -35,7 +35,7 @@ export default function SearchScreen() {
         columnWrapperStyle={{ gap: 12 }}
         className="mt-4"
         renderItem={({ item }) => (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             <PlantCard
               plant={item}
               compact
