@@ -1,7 +1,14 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Plant } from "@/src/types/catalog";
 import { normalizeOrderStatus, Order } from "@/src/types/orders";
-import { loadOrders, loadShopState, saveCart, saveOrders, saveWishlist } from "@/src/store/persistence";
+import {
+  loadOrders,
+  loadShopState,
+  saveCart,
+  saveOrders,
+  saveWishlist,
+  withStorageTimeout,
+} from "@/src/store/persistence";
 import { getPlantById } from "@/src/data/plants";
 
 export interface CartLine {
@@ -40,17 +47,31 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    Promise.all([loadShopState(), loadOrders()]).then(([state, savedOrders]) => {
-      setCart(
-        state.cart.map((line) => ({
-          ...line,
-          plant: refreshPlant(line.plant),
-        })),
-      );
-      setWishlist(state.wishlist.map(refreshPlant));
-      setOrders(savedOrders);
-      setHydrated(true);
-    });
+    let cancelled = false;
+    withStorageTimeout(Promise.all([loadShopState(), loadOrders()]), [
+      { cart: [] as CartLine[], wishlist: [] as Plant[] },
+      [] as Order[],
+    ])
+      .then(([state, savedOrders]) => {
+        if (cancelled) return;
+        setCart(
+          state.cart.map((line) => ({
+            ...line,
+            plant: refreshPlant(line.plant),
+          })),
+        );
+        setWishlist(state.wishlist.map(refreshPlant));
+        setOrders(savedOrders);
+      })
+      .catch(() => {
+        /* seed vacío vía estado inicial */
+      })
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

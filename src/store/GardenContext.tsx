@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Plant } from "@/src/types/catalog";
 import { GardenPlant } from "@/src/types/garden";
-import { loadGarden, saveGarden } from "@/src/store/persistence";
+import { loadGarden, saveGarden, withStorageTimeout } from "@/src/store/persistence";
 
 export type { GardenPlant };
 
@@ -20,10 +20,21 @@ export function GardenProvider({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    loadGarden().then((saved) => {
-      setGarden(saved);
-      setHydrated(true);
-    });
+    let cancelled = false;
+    withStorageTimeout(loadGarden(), [] as GardenPlant[])
+      .then((saved) => {
+        if (cancelled) return;
+        setGarden(saved);
+      })
+      .catch(() => {
+        /* seed vacío vía estado inicial */
+      })
+      .finally(() => {
+        if (!cancelled) setHydrated(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {

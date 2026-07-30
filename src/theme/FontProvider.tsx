@@ -10,14 +10,15 @@ import {
 import { colors } from "@/src/theme/tokens";
 
 export function FontProvider({ children }: { children: ReactNode }) {
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
   });
 
-  if (!loaded) {
+  // Si falla la carga de fuentes, no bloquear la app con spinner eterno.
+  if (!loaded && !error) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator color={colors.brand} />

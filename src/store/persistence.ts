@@ -3,6 +3,7 @@ import { CartLine } from "@/src/store/ShopContext";
 import { Plant } from "@/src/types/catalog";
 import { Order } from "@/src/types/orders";
 import { GardenPlant } from "@/src/types/garden";
+import type { ChatPersistedState } from "@/src/data/chat";
 
 const CART_KEY = "rizoma.cart.v1";
 const WISHLIST_KEY = "rizoma.wishlist.v1";
@@ -10,6 +11,24 @@ const ORDERS_KEY = "rizoma.orders.v1";
 const GARDEN_KEY = "rizoma.garden.v1";
 const ONBOARDING_KEY = "rizoma.onboarding.v1";
 const PROFILE_NAME_KEY = "rizoma.profileName.v1";
+const CHAT_KEY = "@rizoma/chat-threads";
+
+/** Evita pantallas de carga eternas si AsyncStorage cuelga tras reiniciar el emulador. */
+export const STORAGE_LOAD_TIMEOUT_MS = 2500;
+
+export function withStorageTimeout<T>(promise: Promise<T>, fallback: T, ms = STORAGE_LOAD_TIMEOUT_MS): Promise<T> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value: T) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(fallback), ms);
+    promise.then(finish, () => finish(fallback));
+  });
+}
 
 export async function loadShopState(): Promise<{ cart: CartLine[]; wishlist: Plant[] }> {
   try {
@@ -82,4 +101,23 @@ export async function loadProfileName(): Promise<string> {
 
 export async function saveProfileName(name: string) {
   await AsyncStorage.setItem(PROFILE_NAME_KEY, name);
+}
+
+/** Returns null when there is no saved chat data (caller should seed). Empty threads = user cleared history. */
+export async function loadChatState(): Promise<ChatPersistedState | null> {
+  try {
+    const raw = await AsyncStorage.getItem(CHAT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ChatPersistedState;
+    if (!parsed || !Array.isArray(parsed.threads) || !parsed.messagesByThread || typeof parsed.messagesByThread !== "object") {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveChatState(state: ChatPersistedState) {
+  await AsyncStorage.setItem(CHAT_KEY, JSON.stringify(state));
 }

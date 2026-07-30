@@ -1,5 +1,9 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { hasCompletedOnboarding, markOnboardingDone } from "@/src/store/persistence";
+import {
+  hasCompletedOnboarding,
+  markOnboardingDone,
+  withStorageTimeout,
+} from "@/src/store/persistence";
 
 interface OnboardingContextValue {
   ready: boolean;
@@ -14,9 +18,21 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [needsOnboarding, setNeedsOnboarding] = useState(true);
 
   useEffect(() => {
-    hasCompletedOnboarding()
-      .then((done) => setNeedsOnboarding(!done))
-      .finally(() => setReady(true));
+    let cancelled = false;
+    withStorageTimeout(hasCompletedOnboarding(), false)
+      .then((done) => {
+        if (cancelled) return;
+        setNeedsOnboarding(!done);
+        setReady(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setNeedsOnboarding(true);
+        setReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const completeOnboarding = useCallback(async () => {

@@ -1,121 +1,221 @@
-import { useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
-import { MessageCircle, Send } from "lucide-react-native";
-import { Screen } from "@/src/components/ui/Screen";
+import { useLocalSearchParams, router } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Package, Send } from "lucide-react-native";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
-import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
+import { quickSuggestions, type ChatMessage } from "@/src/data/chat";
+import { useChat } from "@/src/store/ChatContext";
 import { colors } from "@/src/theme/tokens";
 
-const threadMeta: Record<string, { title: string; seed: string[] }> = {
-  "1": {
-    title: "Soporte Rizoma",
-    seed: ["Hola, ¿en qué podemos ayudarte hoy?", "Puedes preguntar por envíos, riegos o pet-friendly."],
-  },
-  "2": {
-    title: "FAQ rápida",
-    seed: ["Envío gratis desde 40 EUR.", "Las fichas muestran luz, riego y seguridad para mascotas."],
-  },
-  "3": {
-    title: "Feedback",
-    seed: ["Cuenta qué te ha parecido el catálogo Rizoma.", "Tu feedback nos ayuda a pulir la experiencia."],
-  },
-};
-
-type Message = { id: string; from: "bot" | "user"; text: string; at: string };
-
-function nowLabel() {
-  const date = new Date();
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
+const CHIP_COOLDOWN_MS = 1000;
 
 export default function ChatThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const meta = threadMeta[id ?? "1"] ?? threadMeta["1"];
+  const threadId = id ?? "1";
+  const insets = useSafeAreaInsets();
+  const listRef = useRef<FlatList<ChatMessage>>(null);
+  const { hydrated, getMessages, getThreadMeta, isTyping, markThreadRead, sendMessage } = useChat();
+
+  const meta = getThreadMeta(threadId);
+  const messages = getMessages(threadId);
+  const typing = isTyping(threadId);
+
   const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(() =>
-    meta.seed.map((text, index) => ({ id: `seed-${index}`, from: "bot", text, at: "Ahora" })),
-  );
+  const [disabledChip, setDisabledChip] = useState<string | null>(null);
 
-  const reply = useMemo(
-    () => "Gracias por tu mensaje. Un especialista Rizoma te respondería aquí en la versión completa.",
-    [],
-  );
+  useEffect(() => {
+    if (!hydrated) return;
+    markThreadRead(threadId);
+  }, [hydrated, threadId, markThreadRead]);
 
-  const send = () => {
-    const text = input.trim();
-    if (!text || typing) return;
-    setMessages((prev) => [...prev, { id: `u-${Date.now()}`, from: "user", text, at: nowLabel() }]);
+  useEffect(() => {
     setInput("");
-    setTyping(true);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `b-${Date.now()}`, from: "bot", text: reply, at: nowLabel() }]);
-      setTyping(false);
-    }, 700);
+    setDisabledChip(null);
+  }, [threadId]);
+
+  useEffect(() => {
+    if (!disabledChip) return;
+    const timer = setTimeout(() => setDisabledChip(null), CHIP_COOLDOWN_MS);
+    return () => clearTimeout(timer);
+  }, [disabledChip]);
+
+  const scrollToEnd = () => {
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToEnd({ animated: true });
+    });
   };
 
-  return (
-    <Screen>
-      <ScreenHeader title={meta.title} showBell={false} />
-      <FlatList
-        data={messages}
-        keyExtractor={(item) => item.id}
-        className="flex-1"
-        contentContainerStyle={{ paddingBottom: 16, gap: 10, flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        ListEmptyComponent={
-          <EmptyState
-            title="Empieza la conversación"
-            description="Pregunta por envíos, riegos o disponibilidad."
-            icon={<MessageCircle size={24} color={emptyIconTone} />}
-          />
-        }
-        renderItem={({ item }) => (
-          <View
-            className={`max-w-[85%] rounded-3xl px-4 py-3 ${item.from === "user" ? "self-end bg-rizoma-brand" : "self-start bg-rizoma-gray"}`}
-          >
-            <Text
-              className={item.from === "user" ? "text-white" : "text-rizoma-black"}
-              style={{ fontFamily: "Inter_400Regular" }}
-            >
-              {item.text}
-            </Text>
-            <Text
-              className={`mt-1 text-[10px] ${item.from === "user" ? "text-white/80" : "text-rizoma-grayText"}`}
-              style={{ fontFamily: "Inter_500Medium" }}
-            >
-              {item.at}
-            </Text>
-          </View>
-        )}
-        ListFooterComponent={
-          typing ? (
-            <View className="self-start rounded-3xl bg-rizoma-gray px-4 py-3">
-              <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
-                Escribiendo…
-              </Text>
-            </View>
-          ) : null
-        }
-      />
-      <View className="flex-row items-center gap-2 border-t border-rizoma-border pb-2 pt-3">
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="Escribe un mensaje..."
-          placeholderTextColor={colors.grayText}
-          className="flex-1 rounded-full border border-rizoma-border bg-white px-4 py-3"
-          style={{ fontFamily: "Inter_400Regular" }}
-        />
-        <Pressable
-          accessibilityLabel="Enviar mensaje"
-          onPress={send}
-          className="h-12 w-12 items-center justify-center rounded-full bg-rizoma-brand"
-        >
-          <Send size={18} color="#FFFFFF" />
-        </Pressable>
+  useEffect(() => {
+    scrollToEnd();
+  }, [messages.length, typing]);
+
+  const send = (raw: string, fromChip?: string) => {
+    const text = raw.trim();
+    if (!text || typing) return;
+    if (fromChip && disabledChip === fromChip) return;
+
+    const ok = sendMessage(threadId, text);
+    if (!ok) return;
+
+    setInput("");
+    if (fromChip) setDisabledChip(fromChip);
+    scrollToEnd();
+  };
+
+  const canSend = input.trim().length > 0 && !typing;
+  const bottomPad = Math.max(insets.bottom, 10);
+
+  if (!hydrated) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white" style={{ paddingTop: insets.top }}>
+        <ActivityIndicator color={colors.brand} />
       </View>
-    </Screen>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        <View className="flex-1 px-[13px] pt-2">
+          <ScreenHeader title={meta.title} showBell={false} />
+          <Text
+            className="-mt-2 mb-3 text-center text-xs text-rizoma-secondaryText"
+            style={{ fontFamily: "Inter_500Medium" }}
+          >
+            {meta.subtitle}
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ir a mis pedidos"
+            onPress={() => router.push("/orders")}
+            className="mb-3 flex-row items-center gap-2 self-start rounded-full bg-rizoma-brandSoft px-3 py-2"
+          >
+            <Package size={14} color={colors.brand} />
+            <Text className="text-xs text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Ver mis pedidos
+            </Text>
+          </Pressable>
+
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: 12, gap: 10, flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={scrollToEnd}
+            renderItem={({ item }) => {
+              const isUser = item.from === "user";
+              return (
+                <View
+                  className={`max-w-[82%] px-4 py-3 ${
+                    isUser
+                      ? "self-end rounded-3xl rounded-br-lg bg-rizoma-brand"
+                      : "self-start rounded-3xl rounded-bl-lg bg-rizoma-gray"
+                  }`}
+                  accessibilityRole="text"
+                  accessibilityLabel={`${isUser ? "Tú" : "Soporte"}: ${item.text}`}
+                >
+                  <Text
+                    className={isUser ? "text-[15px] text-white" : "text-[15px] text-rizoma-black"}
+                    style={{ fontFamily: "Inter_400Regular" }}
+                  >
+                    {item.text}
+                  </Text>
+                  <Text
+                    className={`mt-1.5 text-[10px] ${isUser ? "text-right text-white/75" : "text-rizoma-grayText"}`}
+                    style={{ fontFamily: "Inter_500Medium" }}
+                  >
+                    {item.at}
+                  </Text>
+                </View>
+              );
+            }}
+            ListFooterComponent={
+              typing ? (
+                <View className="self-start rounded-3xl rounded-bl-lg bg-rizoma-gray px-4 py-3">
+                  <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
+                    Escribiendo…
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="mb-2 max-h-11"
+            contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+          >
+            {quickSuggestions.map((label) => {
+              const chipDisabled = typing || disabledChip === label;
+              return (
+                <Pressable
+                  key={label}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Sugerencia: ${label}`}
+                  accessibilityState={{ disabled: chipDisabled }}
+                  disabled={chipDisabled}
+                  onPress={() => send(label, label)}
+                  className={`rounded-full border border-rizoma-border px-3.5 py-2 ${
+                    chipDisabled ? "bg-rizoma-gray opacity-60" : "bg-white"
+                  }`}
+                >
+                  <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <View
+            className="flex-row items-center gap-2 border-t border-rizoma-border pt-3"
+            style={{ paddingBottom: bottomPad }}
+          >
+            <TextInput
+              value={input}
+              onChangeText={setInput}
+              placeholder="Escribe un mensaje…"
+              placeholderTextColor={colors.grayText}
+              accessibilityLabel="Mensaje de chat"
+              returnKeyType="send"
+              onSubmitEditing={() => send(input)}
+              className="flex-1 rounded-full border border-rizoma-border bg-rizoma-gray px-4 py-3 text-rizoma-black"
+              style={{ fontFamily: "Inter_400Regular", fontSize: 15 }}
+            />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Enviar mensaje"
+              accessibilityState={{ disabled: !canSend }}
+              disabled={!canSend}
+              onPress={() => send(input)}
+              className={`h-12 w-12 items-center justify-center rounded-full ${
+                canSend ? "bg-rizoma-brand" : "bg-rizoma-gray"
+              }`}
+            >
+              <Send size={18} color={canSend ? "#FFFFFF" : colors.grayText} />
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
