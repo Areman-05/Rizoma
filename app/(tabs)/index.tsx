@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { MapPin, Bell, SlidersHorizontal } from "lucide-react-native";
+import { MapPin, Bell } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
 import { shopCategories, ShopCategoryId } from "@/src/data/shopCategories";
@@ -182,7 +182,7 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll>
-      <View className="mb-4 flex-row items-center justify-between">
+      <View className="mb-4 flex-row items-center justify-between" style={{ paddingTop: 6 }}>
         <Pressable
           className="flex-row items-center gap-3"
           onPress={() => router.push("/(tabs)/profile")}
@@ -214,21 +214,10 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <View className="flex-row items-center gap-2.5">
-        <View className="min-w-0 flex-1">
-          <LeafySearchBar
-            onFocusPress={() => router.push("/search")}
-            onScanPress={() => router.push("/scan")}
-          />
-        </View>
-        <CircularIconButton
-          accessibilityLabel="Filtros del catálogo"
-          onPress={() => router.push("/(tabs)/explore")}
-          size={48}
-        >
-          <SlidersHorizontal size={18} color={colors.black} />
-        </CircularIconButton>
-      </View>
+      <LeafySearchBar
+        onFocusPress={() => router.push("/search")}
+        onScanPress={() => router.push("/scan")}
+      />
 
       <View className="mt-5 flex-row items-center justify-between">
         <Text className="text-xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>

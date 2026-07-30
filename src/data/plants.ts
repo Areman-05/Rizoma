@@ -82,7 +82,7 @@ const catalogSeed: Array<
   },
   {
     id: "zamioculca",
-    name: "Zamioculca raven",
+    name: "Zamioculca cuervo",
     latinName: "Zamioculcas zamiifolia",
     price: 44.9,
     image: cover("photo-1584589167171-541ce45f1eea"),
@@ -181,7 +181,7 @@ const catalogSeed: Array<
   },
   {
     id: "chinese-money-plant",
-    name: "Pilea mini",
+    name: "Pilea pequeña",
     latinName: "Pilea peperomioides Mini",
     price: 27.5,
     image: cover("photo-1600411832986-5a4477b64a1c"),
@@ -280,7 +280,7 @@ const catalogSeed: Array<
   },
   {
     id: "zz-plant",
-    name: "ZZ glamour",
+    name: "Zamioculca ZZ",
     latinName: "Zamioculcas zamiifolia",
     price: 42.0,
     image: cover("photo-1614594895304-fe7116ac3b58"),
@@ -330,7 +330,7 @@ const catalogSeed: Array<
   },
   {
     id: "nerve-plant",
-    name: "Planta nervio",
+    name: "Planta mosaico",
     latinName: "Fittonia albivenis",
     price: 22.5,
     image: cover("photo-1518531933037-91b2f5f229cc"),
@@ -417,7 +417,7 @@ const catalogSeed: Array<
   },
   {
     id: "monstera-adansonii",
-    name: "Monstera mono",
+    name: "Monstera agujereada",
     latinName: "Monstera adansonii",
     price: 38.9,
     image: cover("photo-1593691509543-c55fb32d8de5"),
@@ -430,7 +430,7 @@ const catalogSeed: Array<
   },
   {
     id: "fiddle-leaf-mini",
-    name: "Ficus lira mini",
+    name: "Ficus lira pequeño",
     latinName: "Ficus lyrata Bambino",
     price: 55.0,
     image: cover("photo-1487700160041-babef9c3cb55"),
@@ -492,7 +492,7 @@ const catalogSeed: Array<
   },
   {
     id: "peperomia-obtusifolia",
-    name: "Peperomia baby rubber",
+    name: "Peperomia de caucho",
     latinName: "Peperomia obtusifolia",
     price: 25.5,
     image: cover("photo-1545239705-1564e58b9e4a"),
@@ -593,7 +593,7 @@ const catalogSeed: Array<
   },
   {
     id: "crassula-ovata-hobbit",
-    name: "Jade hobbit",
+    name: "Árbol de jade hobbit",
     latinName: "Crassula ovata Hobbit",
     price: 26.5,
     image: cover("photo-1763315280654-ecde3336c526"),

@@ -2,6 +2,7 @@ import { createContext, ReactNode, useContext, useEffect, useMemo, useState } fr
 import { Plant } from "@/src/types/catalog";
 import { normalizeOrderStatus, Order } from "@/src/types/orders";
 import { loadOrders, loadShopState, saveCart, saveOrders, saveWishlist } from "@/src/store/persistence";
+import { getPlantById } from "@/src/data/plants";
 
 export interface CartLine {
   plant: Plant;
@@ -28,6 +29,10 @@ interface ShopContextValue {
 
 const ShopContext = createContext<ShopContextValue | null>(null);
 
+function refreshPlant(plant: Plant): Plant {
+  return getPlantById(plant.id) ?? plant;
+}
+
 export function ShopProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<Plant[]>([]);
@@ -36,8 +41,13 @@ export function ShopProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     Promise.all([loadShopState(), loadOrders()]).then(([state, savedOrders]) => {
-      setCart(state.cart);
-      setWishlist(state.wishlist);
+      setCart(
+        state.cart.map((line) => ({
+          ...line,
+          plant: refreshPlant(line.plant),
+        })),
+      );
+      setWishlist(state.wishlist.map(refreshPlant));
       setOrders(savedOrders);
       setHydrated(true);
     });

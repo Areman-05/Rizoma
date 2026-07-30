@@ -11,6 +11,7 @@ interface PlantCardProps {
   onToggleWishlist?: () => void;
   wishlisted?: boolean;
   compact?: boolean;
+  variant?: "catalog" | "wishlist";
 }
 
 export function PlantCard({
@@ -19,14 +20,24 @@ export function PlantCard({
   onToggleWishlist,
   wishlisted = false,
   compact = false,
+  variant = "catalog",
 }: PlantCardProps) {
   const percent = plant.salePercent ?? salePercent(plant.price, plant.originalPrice);
-  const imageHeight = compact ? 112 : 160;
+  const isWishlist = variant === "wishlist";
+
+  const imageStyle = isWishlist
+    ? ({ width: "100%", aspectRatio: 1 } as const)
+    : compact
+      ? ({ width: "100%", height: 112 } as const)
+      : ({ width: "100%", aspectRatio: 1 } as const);
 
   return (
-    <View className="mb-4 w-full">
+    <View className={`w-full ${isWishlist ? "mb-5" : "mb-4"}`}>
       <PressableScale onPress={onPress}>
-        <View className="overflow-hidden rounded-3xl bg-rizoma-gray" style={elevation.soft}>
+        <View
+          className={`overflow-hidden bg-rizoma-gray ${isWishlist ? "rounded-[20px]" : "rounded-3xl"}`}
+          style={isWishlist ? undefined : elevation.soft}
+        >
           {percent ? (
             <View className="absolute left-3 top-3 z-10 rounded-full bg-rizoma-red px-2 py-1">
               <Text className="text-xs text-white" style={{ fontFamily: "Inter_600SemiBold" }}>
@@ -57,14 +68,10 @@ export function PlantCard({
               fill={wishlisted ? colors.brand : "transparent"}
             />
           </Pressable>
-          <Image
-            source={{ uri: plant.image }}
-            style={{ width: "100%", height: imageHeight }}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: plant.image }} style={imageStyle} resizeMode="cover" />
         </View>
 
-        <View className="mt-2 flex-row items-center gap-1">
+        <View className={`${isWishlist ? "mt-3" : "mt-2"} flex-row items-center gap-1`}>
           <Star size={12} color={colors.yellow} fill={colors.yellow} />
           <Text className="text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
             {plant.rating.toFixed(1)} ({plant.reviewCount})

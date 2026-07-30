@@ -19,7 +19,7 @@ export function ScreenHeader({
   onBellPress,
 }: ScreenHeaderProps) {
   return (
-    <View className="mb-4 flex-row items-center justify-between">
+    <View className="mb-4 flex-row items-center justify-between" style={{ paddingTop: 6 }}>
       {showBack ? (
         <CircularIconButton accessibilityLabel="Volver" onPress={() => router.back()}>
           <ChevronLeft size={20} color={iconTone.dark} />
