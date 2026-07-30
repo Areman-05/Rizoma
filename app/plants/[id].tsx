@@ -16,7 +16,7 @@ import { colors } from "@/src/theme/tokens";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** Altura del chrome sticky (sin safe-area): fila secundaria + dock CTA. */
-const BOTTOM_BAR_CONTENT_HEIGHT = 108;
+const BOTTOM_BAR_CONTENT_HEIGHT = 112;
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,21 +64,13 @@ export default function PlantDetailScreen() {
             <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
               <ChevronLeft size={20} color={colors.black} />
             </CircularIconButton>
-            <View className="flex-row items-center gap-2">
-              <CircularIconButton
-                onPress={() => router.replace("/(tabs)")}
-                accessibilityLabel="Ir al inicio"
-              >
-                <Home size={18} color={colors.black} />
-              </CircularIconButton>
-              <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
-                <Heart
-                  size={18}
-                  color={saved ? colors.brand : colors.black}
-                  fill={saved ? colors.brand : "transparent"}
-                />
-              </CircularIconButton>
-            </View>
+            <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
+              <Heart
+                size={18}
+                color={saved ? colors.brand : colors.black}
+                fill={saved ? colors.brand : "transparent"}
+              />
+            </CircularIconButton>
           </View>
           {plant.badge ? (
             <View className="absolute bottom-4 left-[13px] rounded-full bg-rizoma-brand px-3 py-1">
@@ -198,20 +190,36 @@ export default function PlantDetailScreen() {
         className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-2.5"
         style={{ paddingBottom: bottomBarPadding }}
       >
-        <Pressable
-          accessibilityLabel="Guardar en Mi Jardín"
-          onPress={() => {
-            addToGarden(plant);
-            showToast("Guardada en Mi Jardín");
-          }}
-          className="mb-2.5 flex-row items-center justify-center gap-1.5 py-1"
-          hitSlop={4}
-        >
-          <Leaf size={15} color={colors.brand} />
-          <Text className="text-[11px] text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
-            Guardar en Mi Jardín
-          </Text>
-        </Pressable>
+        <View className="mb-2.5 flex-row items-center justify-between px-0.5">
+          <Pressable
+            accessibilityLabel="Ir al inicio"
+            onPress={() => router.replace("/(tabs)")}
+            className="flex-row items-center gap-1.5 rounded-full bg-rizoma-brandSoft px-3 py-1.5"
+            hitSlop={6}
+            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
+          >
+            <Home size={16} color={colors.brand} />
+            <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Inicio
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityLabel="Guardar en Mi Jardín"
+            onPress={() => {
+              addToGarden(plant);
+              showToast("Guardada en Mi Jardín");
+            }}
+            className="flex-row items-center gap-1.5 py-1"
+            hitSlop={4}
+            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
+          >
+            <Leaf size={15} color={colors.brand} />
+            <Text className="text-[11px] text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
+              Mi Jardín
+            </Text>
+          </Pressable>
+        </View>
 
         <View className="flex-row items-center gap-2.5">
           <View className="h-12 flex-row items-center rounded-full bg-rizoma-brandSoft px-1">

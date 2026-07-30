@@ -1,6 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Plant } from "@/src/types/catalog";
-import { Order } from "@/src/types/orders";
+import { normalizeOrderStatus, Order } from "@/src/types/orders";
 import { loadOrders, loadShopState, saveCart, saveOrders, saveWishlist } from "@/src/store/persistence";
 
 export interface CartLine {
@@ -23,6 +23,7 @@ interface ShopContextValue {
   clearCart: () => void;
   placeOrder: (order: Order) => void;
   cancelOrder: (orderId: string) => void;
+  advanceOrderStatus: (orderId: string) => void;
 }
 
 const ShopContext = createContext<ShopContextValue | null>(null);
@@ -105,10 +106,23 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       cancelOrder: (orderId) => {
         setOrders((prev) =>
           prev.map((order) =>
-            order.id === orderId && order.status !== "delivered"
+            order.id === orderId && normalizeOrderStatus(order.status) !== "delivered"
               ? { ...order, status: "cancelled" }
               : order,
           ),
+        );
+      },
+      advanceOrderStatus: (orderId) => {
+        const sequence = ["prepared", "shipped", "in_transit", "delivered"] as const;
+        setOrders((prev) =>
+          prev.map((order) => {
+            if (order.id !== orderId) return order;
+            const current = normalizeOrderStatus(order.status);
+            if (current === "cancelled" || current === "delivered") return order;
+            const index = sequence.indexOf(current);
+            const next = sequence[Math.min(index + 1, sequence.length - 1)];
+            return { ...order, status: next };
+          }),
         );
       },
     };

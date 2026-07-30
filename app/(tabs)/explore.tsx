@@ -1,8 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FlatList, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SearchX } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
+import {
+  isShopCategoryId,
+  plantIdsForShopCategory,
+  shopCategories,
+  ShopCategoryId,
+} from "@/src/data/shopCategories";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { FilterChip } from "@/src/components/ui/FilterChip";
 import { Screen } from "@/src/components/ui/Screen";
@@ -13,10 +19,28 @@ import { useShop } from "@/src/store/ShopContext";
 import { difficultyLabel, lightLabel } from "@/src/utils/plantLabels";
 
 export default function ExploreScreen() {
+  const params = useLocalSearchParams<{ shop?: string }>();
+  const initialShop = isShopCategoryId(params.shop) ? params.shop : null;
+  const [shopFilter, setShopFilter] = useState<ShopCategoryId | null>(initialShop);
   const [filters, setFilters] = useState<CatalogFilters>(defaultCatalogFilters);
   const { toggleWishlist, isInWishlist } = useShop();
 
-  const filteredPlants = useMemo(() => filterPlants(plants, filters), [filters]);
+  useEffect(() => {
+    setShopFilter(isShopCategoryId(params.shop) ? params.shop : null);
+  }, [params.shop]);
+
+  const filteredPlants = useMemo(() => {
+    let list = filterPlants(plants, filters);
+    if (shopFilter) {
+      const allowed = new Set(plantIdsForShopCategory(shopFilter));
+      list = list.filter((plant) => allowed.has(plant.id));
+    }
+    return list;
+  }, [filters, shopFilter]);
+
+  const shopLabel = shopFilter
+    ? shopCategories.find((item) => item.id === shopFilter)?.label
+    : null;
 
   return (
     <Screen>
@@ -32,6 +56,30 @@ export default function ExploreScreen() {
             <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
               Filtra por luz, dificultad y mascotas.
             </Text>
+
+            <View className="mb-3 flex-row flex-wrap gap-2">
+              <FilterChip
+                label="Todas"
+                active={shopFilter === null}
+                variant="brand"
+                onPress={() => setShopFilter(null)}
+              />
+              {shopCategories.map((item) => (
+                <FilterChip
+                  key={item.id}
+                  label={item.label}
+                  active={shopFilter === item.id}
+                  variant="brand"
+                  onPress={() => setShopFilter(item.id)}
+                />
+              ))}
+            </View>
+
+            {shopLabel ? (
+              <Text className="mb-3 text-xs text-rizoma-brand" style={{ fontFamily: "Inter_500Medium" }}>
+                Mostrando: {shopLabel}
+              </Text>
+            ) : null}
 
             <View className="mb-3 flex-row flex-wrap gap-2">
               {(["all", "low", "medium", "high"] as const).map((item) => (
@@ -89,7 +137,10 @@ export default function ExploreScreen() {
             title="Sin coincidencias"
             description="Prueba otra combinación de filtros."
             actionLabel="Limpiar filtros"
-            onActionPress={() => setFilters(defaultCatalogFilters)}
+            onActionPress={() => {
+              setFilters(defaultCatalogFilters);
+              setShopFilter(null);
+            }}
             icon={<SearchX size={24} color={emptyIconTone} />}
           />
         }

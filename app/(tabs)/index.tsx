@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, Image, Pressable, Text, View } from "react-native";
+import {
+  Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { router } from "expo-router";
-import { MapPin, Bell } from "lucide-react-native";
+import { MapPin, Bell, SlidersHorizontal, Home, Sun, Trees, Leaf } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
+import { shopCategories, ShopCategoryId } from "@/src/data/shopCategories";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { FilterChip } from "@/src/components/ui/FilterChip";
@@ -22,7 +31,14 @@ const promos = [
   { id: "p3", title: "Envío gratis", subtitle: "Pedidos desde 40 EUR", plantIndex: 2 },
 ];
 
-const PROMO_TRANSITION_MS = 280;
+const PROMO_AUTO_MS = 4000;
+
+const shopCategoryIcons = {
+  Home,
+  Sun,
+  Trees,
+  Leaf,
+} as const;
 
 function formatCountdown(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -36,57 +52,40 @@ export default function HomeScreen() {
   const [categoryId, setCategoryId] = useState(plantCategories[0].id);
   const [secondsLeft, setSecondsLeft] = useState(2 * 3600 + 12 * 60);
   const [promoIndex, setPromoIndex] = useState(0);
+  const [promoWidth, setPromoWidth] = useState(0);
   const [profileName, setProfileName] = useState("amante de las plantas");
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
-  const activePromo = promos[promoIndex];
-  const promoOpacity = useRef(new Animated.Value(1)).current;
-  const promoTranslate = useRef(new Animated.Value(0)).current;
+
+  const promoScrollRef = useRef<ScrollView>(null);
   const promoIndexRef = useRef(0);
-  const animatingRef = useRef(false);
+  const promoWidthRef = useRef(0);
+  const promoDraggingRef = useRef(false);
 
-  const goToPromo = (nextIndex: number) => {
-    const normalized = ((nextIndex % promos.length) + promos.length) % promos.length;
-    if (normalized === promoIndexRef.current || animatingRef.current) return;
+  promoIndexRef.current = promoIndex;
+  promoWidthRef.current = promoWidth;
 
-    animatingRef.current = true;
-    Animated.parallel([
-      Animated.timing(promoOpacity, {
-        toValue: 0,
-        duration: PROMO_TRANSITION_MS / 2,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-      Animated.timing(promoTranslate, {
-        toValue: -18,
-        duration: PROMO_TRANSITION_MS / 2,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      promoIndexRef.current = normalized;
-      setPromoIndex(normalized);
-      promoTranslate.setValue(18);
-      Animated.parallel([
-        Animated.timing(promoOpacity, {
-          toValue: 1,
-          duration: PROMO_TRANSITION_MS / 2,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(promoTranslate, {
-          toValue: 0,
-          duration: PROMO_TRANSITION_MS / 2,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        animatingRef.current = false;
-      });
-    });
+  const syncPromoFromOffset = (offsetX: number, width: number) => {
+    if (width <= 0) return;
+    const next = Math.round(offsetX / width);
+    const clamped = Math.max(0, Math.min(promos.length - 1, next));
+    if (clamped !== promoIndexRef.current) {
+      promoIndexRef.current = clamped;
+      setPromoIndex(clamped);
+    }
   };
 
-  const goToPromoRef = useRef(goToPromo);
-  goToPromoRef.current = goToPromo;
+  const onPromoScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    syncPromoFromOffset(event.nativeEvent.contentOffset.x, promoWidthRef.current);
+  };
+
+  const scrollToPromo = (index: number, animated = true) => {
+    const width = promoWidthRef.current;
+    if (width <= 0) return;
+    const normalized = ((index % promos.length) + promos.length) % promos.length;
+    promoScrollRef.current?.scrollTo({ x: normalized * width, animated });
+    promoIndexRef.current = normalized;
+    setPromoIndex(normalized);
+  };
 
   useEffect(() => {
     loadProfileName().then((name) => setProfileName(name.toLowerCase()));
@@ -100,17 +99,29 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
+    if (promoWidth <= 0) return;
     const auto = setInterval(() => {
-      goToPromoRef.current(promoIndexRef.current + 1);
-    }, 3500);
+      if (promoDraggingRef.current) return;
+      const next = (promoIndexRef.current + 1) % promos.length;
+      scrollToPromo(next, true);
+    }, PROMO_AUTO_MS);
     return () => clearInterval(auto);
-  }, []);
+  }, [promoWidth]);
 
   const activeCategory = plantCategories.find((item) => item.id === categoryId) ?? plantCategories[0];
   const featured = useMemo(
     () => plantsByCategory(plants, activeCategory.filter).slice(0, 6),
     [activeCategory.filter],
   );
+
+  const recommended = useMemo(
+    () => [...plants].sort((a, b) => b.rating - a.rating || b.reviewCount - a.reviewCount).slice(0, 4),
+    [],
+  );
+
+  const openShopCategory = (id: ShopCategoryId) => {
+    router.push({ pathname: "/(tabs)/explore", params: { shop: id } });
+  };
 
   return (
     <Screen scroll>
@@ -146,10 +157,21 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      <LeafySearchBar
-        onFocusPress={() => router.push("/search")}
-        onScanPress={() => router.push("/scan")}
-      />
+      <View className="flex-row items-center gap-2.5">
+        <View className="min-w-0 flex-1">
+          <LeafySearchBar
+            onFocusPress={() => router.push("/search")}
+            onScanPress={() => router.push("/scan")}
+          />
+        </View>
+        <CircularIconButton
+          accessibilityLabel="Filtros del catálogo"
+          onPress={() => router.push("/(tabs)/explore")}
+          size={48}
+        >
+          <SlidersHorizontal size={18} color={colors.black} />
+        </CircularIconButton>
+      </View>
 
       <View className="mt-5 flex-row items-center justify-between">
         <Text className="text-xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
@@ -160,41 +182,121 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      <Pressable
+      <View
         className="mt-3 overflow-hidden rounded-3xl bg-rizoma-brandSoft"
-        onPress={() => router.push(`/plants/${plants[activePromo.plantIndex].id}`)}
+        onLayout={(event) => {
+          const width = Math.round(event.nativeEvent.layout.width);
+          if (width > 0 && width !== promoWidthRef.current) {
+            promoWidthRef.current = width;
+            setPromoWidth(width);
+            requestAnimationFrame(() => {
+              promoScrollRef.current?.scrollTo({
+                x: promoIndexRef.current * width,
+                animated: false,
+              });
+            });
+          }
+        }}
       >
-        <Animated.View
-          style={{
-            opacity: promoOpacity,
-            transform: [{ translateX: promoTranslate }],
-          }}
-          className="flex-row items-stretch"
-        >
-          <View className="flex-1 justify-center p-4 pr-2">
-            <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-              {activePromo.subtitle}
-            </Text>
-            <Text className="mt-1 text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              {activePromo.title}
-            </Text>
-          </View>
-          <Image
-            source={{ uri: plants[activePromo.plantIndex].image }}
-            style={{ width: 128, height: 128 }}
-            resizeMode="cover"
-          />
-        </Animated.View>
-      </Pressable>
+        {promoWidth > 0 ? (
+          <ScrollView
+            ref={promoScrollRef}
+            horizontal
+            pagingEnabled
+            decelerationRate="fast"
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={promoWidth}
+            snapToAlignment="start"
+            disableIntervalMomentum
+            onScrollBeginDrag={() => {
+              promoDraggingRef.current = true;
+            }}
+            onScrollEndDrag={() => {
+              promoDraggingRef.current = false;
+            }}
+            onMomentumScrollEnd={(event) => {
+              promoDraggingRef.current = false;
+              syncPromoFromOffset(event.nativeEvent.contentOffset.x, promoWidth);
+            }}
+            onScroll={onPromoScroll}
+            scrollEventThrottle={16}
+          >
+            {promos.map((promo) => (
+              <Pressable
+                key={promo.id}
+                style={{ width: promoWidth }}
+                onPress={() => router.push(`/plants/${plants[promo.plantIndex].id}`)}
+                accessibilityRole="button"
+                accessibilityLabel={promo.title}
+              >
+                <View className="flex-row items-stretch" style={{ height: 128 }}>
+                  <View className="flex-1 justify-center p-4 pr-2">
+                    <Text
+                      className="text-sm text-rizoma-secondaryText"
+                      style={{ fontFamily: "Inter_400Regular" }}
+                    >
+                      {promo.subtitle}
+                    </Text>
+                    <Text
+                      className="mt-1 text-3xl text-rizoma-black"
+                      style={{ fontFamily: "Inter_700Bold" }}
+                    >
+                      {promo.title}
+                    </Text>
+                  </View>
+                  <Image
+                    source={{ uri: plants[promo.plantIndex].image }}
+                    style={{ width: 128, height: 128 }}
+                    resizeMode="cover"
+                  />
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={{ height: 128 }} />
+        )}
+      </View>
+
       <View className="mt-3 flex-row items-center gap-2">
         {promos.map((item, index) => (
           <Pressable
             key={item.id}
             accessibilityLabel={`Promo ${index + 1}`}
-            onPress={() => goToPromo(index)}
+            onPress={() => scrollToPromo(index, true)}
             className={`h-2 rounded-full ${index === promoIndex ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-gray"}`}
           />
         ))}
+      </View>
+
+      <View className="mt-6">
+        <SectionHeader title="Comprar por categoría" subtitle="Encuentra tu estilo de planta" />
+      </View>
+      <View className="mt-1 flex-row justify-between">
+        {shopCategories.map((item) => {
+          const Icon = shopCategoryIcons[item.icon];
+          return (
+            <Pressable
+              key={item.id}
+              onPress={() => openShopCategory(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Categoría ${item.label}`}
+              className="items-center"
+              style={{ width: "23%" }}
+            >
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-rizoma-brandSoft">
+                <Icon size={24} color={colors.brand} />
+              </View>
+              <Text
+                className="mt-2 text-center text-xs text-rizoma-black"
+                style={{ fontFamily: "Inter_600SemiBold" }}
+                numberOfLines={1}
+              >
+                {item.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <View className="mt-6">
@@ -246,6 +348,44 @@ export default function HomeScreen() {
             </View>
           ))}
         </View>
+      )}
+
+      <View className="mt-6">
+        <SectionHeader
+          title="Recomendadas para ti"
+          subtitle="Selección según valoraciones"
+          actionLabel="Ver todo"
+          onActionPress={() => router.push("/(tabs)/explore")}
+        />
+      </View>
+
+      {!hydrated ? (
+        <View className="mt-1 flex-row gap-3">
+          <View className="flex-1">
+            <SkeletonCard />
+          </View>
+          <View className="flex-1">
+            <SkeletonCard />
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12, paddingRight: 4 }}
+          className="mt-1"
+        >
+          {recommended.map((item) => (
+            <View key={item.id} style={{ width: 168 }}>
+              <PlantCard
+                plant={item}
+                wishlisted={isInWishlist(item.id)}
+                onToggleWishlist={() => toggleWishlist(item)}
+                onPress={() => router.push(`/plants/${item.id}`)}
+              />
+            </View>
+          ))}
+        </ScrollView>
       )}
     </Screen>
   );
