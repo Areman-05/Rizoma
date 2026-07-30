@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Image,
   NativeScrollEvent,
@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
-import { MapPin, Bell, SlidersHorizontal, Home, Sun, Trees, Leaf } from "lucide-react-native";
+import { MapPin, Bell, SlidersHorizontal } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
 import { shopCategories, ShopCategoryId } from "@/src/data/shopCategories";
@@ -17,6 +17,7 @@ import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { FilterChip } from "@/src/components/ui/FilterChip";
 import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
+import { CategoryIconButton } from "@/src/components/ui/CategoryIconButton";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { SkeletonCard } from "@/src/components/ui/SkeletonCard";
 import { Screen } from "@/src/components/ui/Screen";
@@ -33,13 +34,6 @@ const promos = [
 
 const PROMO_AUTO_MS = 4000;
 
-const shopCategoryIcons = {
-  Home,
-  Sun,
-  Trees,
-  Leaf,
-} as const;
-
 function formatCountdown(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -52,61 +46,124 @@ export default function HomeScreen() {
   const [categoryId, setCategoryId] = useState(plantCategories[0].id);
   const [secondsLeft, setSecondsLeft] = useState(2 * 3600 + 12 * 60);
   const [promoIndex, setPromoIndex] = useState(0);
-  const [promoWidth, setPromoWidth] = useState(0);
+  const [pageWidth, setPageWidth] = useState(0);
   const [profileName, setProfileName] = useState("amante de las plantas");
+  const [autoTick, setAutoTick] = useState(0);
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
 
   const promoScrollRef = useRef<ScrollView>(null);
   const promoIndexRef = useRef(0);
-  const promoWidthRef = useRef(0);
-  const promoDraggingRef = useRef(false);
+  const pageWidthRef = useRef(0);
+  const draggingRef = useRef(false);
+  const isAutoScrollingRef = useRef(false);
+  const scrollingRef = useRef(false);
+  const mountedRef = useRef(true);
+  const autoTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const releaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   promoIndexRef.current = promoIndex;
-  promoWidthRef.current = promoWidth;
 
-  const syncPromoFromOffset = (offsetX: number, width: number) => {
-    if (width <= 0) return;
+  const clearAutoTimer = useCallback(() => {
+    if (autoTimerRef.current) {
+      clearInterval(autoTimerRef.current);
+      autoTimerRef.current = null;
+    }
+  }, []);
+
+  const clearReleaseTimer = useCallback(() => {
+    if (releaseTimerRef.current) {
+      clearTimeout(releaseTimerRef.current);
+      releaseTimerRef.current = null;
+    }
+  }, []);
+
+  const syncPromoFromOffset = useCallback((offsetX: number, width: number) => {
+    if (!mountedRef.current || width <= 0) return;
+    if (scrollingRef.current || isAutoScrollingRef.current) return;
     const next = Math.round(offsetX / width);
     const clamped = Math.max(0, Math.min(promos.length - 1, next));
     if (clamped !== promoIndexRef.current) {
       promoIndexRef.current = clamped;
       setPromoIndex(clamped);
     }
-  };
+  }, []);
 
-  const onPromoScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    syncPromoFromOffset(event.nativeEvent.contentOffset.x, promoWidthRef.current);
-  };
-
-  const scrollToPromo = (index: number, animated = true) => {
-    const width = promoWidthRef.current;
+  const scrollToPromo = useCallback((index: number, animated = true) => {
+    if (!mountedRef.current) return;
+    const width = pageWidthRef.current;
     if (width <= 0) return;
     const normalized = ((index % promos.length) + promos.length) % promos.length;
-    promoScrollRef.current?.scrollTo({ x: normalized * width, animated });
+    scrollingRef.current = true;
+    isAutoScrollingRef.current = true;
     promoIndexRef.current = normalized;
     setPromoIndex(normalized);
-  };
+    promoScrollRef.current?.scrollTo({ x: normalized * width, animated });
+    // Liberar flags tras la animación (o al instante si no hay animación)
+    clearReleaseTimer();
+    const releaseMs = animated ? 420 : 0;
+    releaseTimerRef.current = setTimeout(() => {
+      releaseTimerRef.current = null;
+      if (!mountedRef.current) return;
+      scrollingRef.current = false;
+      isAutoScrollingRef.current = false;
+    }, releaseMs);
+  }, [clearReleaseTimer]);
+
+  const restartAutoAdvance = useCallback(() => {
+    if (!mountedRef.current) return;
+    setAutoTick((n) => n + 1);
+  }, []);
 
   useEffect(() => {
-    loadProfileName().then((name) => setProfileName(name.toLowerCase()));
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      clearAutoTimer();
+      clearReleaseTimer();
+      scrollingRef.current = false;
+      isAutoScrollingRef.current = false;
+      draggingRef.current = false;
+    };
+  }, [clearAutoTimer, clearReleaseTimer]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadProfileName().then((name) => {
+      if (!cancelled && mountedRef.current) setProfileName(name.toLowerCase());
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (!mountedRef.current) return;
       setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 2 * 3600 + 12 * 60));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    if (promoWidth <= 0) return;
-    const auto = setInterval(() => {
-      if (promoDraggingRef.current) return;
+    if (pageWidth <= 0) return;
+    clearAutoTimer();
+    autoTimerRef.current = setInterval(() => {
+      if (!mountedRef.current) return;
+      if (draggingRef.current || scrollingRef.current || isAutoScrollingRef.current) return;
+      if (pageWidthRef.current <= 0) return;
       const next = (promoIndexRef.current + 1) % promos.length;
       scrollToPromo(next, true);
     }, PROMO_AUTO_MS);
-    return () => clearInterval(auto);
-  }, [promoWidth]);
+    return () => clearAutoTimer();
+  }, [pageWidth, autoTick, clearAutoTimer, scrollToPromo]);
+
+  const onPromoMomentumEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    draggingRef.current = false;
+    scrollingRef.current = false;
+    isAutoScrollingRef.current = false;
+    syncPromoFromOffset(event.nativeEvent.contentOffset.x, pageWidthRef.current);
+    restartAutoAdvance();
+  };
 
   const activeCategory = plantCategories.find((item) => item.id === categoryId) ?? plantCategories[0];
   const featured = useMemo(
@@ -186,10 +243,11 @@ export default function HomeScreen() {
         className="mt-3 overflow-hidden rounded-3xl bg-rizoma-brandSoft"
         onLayout={(event) => {
           const width = Math.round(event.nativeEvent.layout.width);
-          if (width > 0 && width !== promoWidthRef.current) {
-            promoWidthRef.current = width;
-            setPromoWidth(width);
+          if (width > 0 && width !== pageWidthRef.current) {
+            pageWidthRef.current = width;
+            setPageWidth(width);
             requestAnimationFrame(() => {
+              if (!mountedRef.current || pageWidthRef.current <= 0) return;
               promoScrollRef.current?.scrollTo({
                 x: promoIndexRef.current * width,
                 animated: false,
@@ -198,33 +256,28 @@ export default function HomeScreen() {
           }
         }}
       >
-        {promoWidth > 0 ? (
+        {pageWidth > 0 ? (
           <ScrollView
             ref={promoScrollRef}
             horizontal
             pagingEnabled
             decelerationRate="fast"
             showsHorizontalScrollIndicator={false}
-            snapToInterval={promoWidth}
-            snapToAlignment="start"
             disableIntervalMomentum
             onScrollBeginDrag={() => {
-              promoDraggingRef.current = true;
+              draggingRef.current = true;
+              clearAutoTimer();
             }}
             onScrollEndDrag={() => {
-              promoDraggingRef.current = false;
+              // El índice definitivo se fija en onMomentumScrollEnd
             }}
-            onMomentumScrollEnd={(event) => {
-              promoDraggingRef.current = false;
-              syncPromoFromOffset(event.nativeEvent.contentOffset.x, promoWidth);
-            }}
-            onScroll={onPromoScroll}
-            scrollEventThrottle={16}
+            onMomentumScrollEnd={onPromoMomentumEnd}
+            scrollEventThrottle={32}
           >
             {promos.map((promo) => (
               <Pressable
                 key={promo.id}
-                style={{ width: promoWidth }}
+                style={{ width: pageWidth }}
                 onPress={() => router.push(`/plants/${plants[promo.plantIndex].id}`)}
                 accessibilityRole="button"
                 accessibilityLabel={promo.title}
@@ -263,7 +316,14 @@ export default function HomeScreen() {
           <Pressable
             key={item.id}
             accessibilityLabel={`Promo ${index + 1}`}
-            onPress={() => scrollToPromo(index, true)}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={() => {
+              if (index === promoIndexRef.current) return;
+              clearAutoTimer();
+              scrollToPromo(index, true);
+              restartAutoAdvance();
+            }}
             className={`h-2 rounded-full ${index === promoIndex ? "w-6 bg-rizoma-brand" : "w-2 bg-rizoma-gray"}`}
           />
         ))}
@@ -273,30 +333,11 @@ export default function HomeScreen() {
         <SectionHeader title="Comprar por categoría" subtitle="Encuentra tu estilo de planta" />
       </View>
       <View className="mt-1 flex-row justify-between">
-        {shopCategories.map((item) => {
-          const Icon = shopCategoryIcons[item.icon];
-          return (
-            <Pressable
-              key={item.id}
-              onPress={() => openShopCategory(item.id)}
-              accessibilityRole="button"
-              accessibilityLabel={`Categoría ${item.label}`}
-              className="items-center"
-              style={{ width: "23%" }}
-            >
-              <View className="h-16 w-16 items-center justify-center rounded-full bg-rizoma-brandSoft">
-                <Icon size={24} color={colors.brand} />
-              </View>
-              <Text
-                className="mt-2 text-center text-xs text-rizoma-black"
-                style={{ fontFamily: "Inter_600SemiBold" }}
-                numberOfLines={1}
-              >
-                {item.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {shopCategories.map((item) => (
+          <View key={item.id} style={{ width: "23%" }}>
+            <CategoryIconButton category={item} onPress={openShopCategory} />
+          </View>
+        ))}
       </View>
 
       <View className="mt-6">
@@ -351,12 +392,7 @@ export default function HomeScreen() {
       )}
 
       <View className="mt-6">
-        <SectionHeader
-          title="Recomendadas para ti"
-          subtitle="Selección según valoraciones"
-          actionLabel="Ver todo"
-          onActionPress={() => router.push("/(tabs)/explore")}
-        />
+        <SectionHeader title="Recomendadas para ti" subtitle="Selección según valoraciones" />
       </View>
 
       {!hydrated ? (

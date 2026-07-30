@@ -15,8 +15,8 @@ import { difficultyLabel } from "@/src/utils/plantLabels";
 import { colors } from "@/src/theme/tokens";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-/** Altura del chrome sticky (sin safe-area): fila secundaria + dock CTA. */
-const BOTTOM_BAR_CONTENT_HEIGHT = 112;
+/** Altura del chrome sticky (sin safe-area): fila Jardín + dock CTA. */
+const BOTTOM_BAR_CONTENT_HEIGHT = 96;
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,9 +61,17 @@ export default function PlantDetailScreen() {
         <View className="relative">
           <Image source={{ uri: plant.image }} style={{ width: "100%", height: 360 }} resizeMode="cover" />
           <View className="absolute left-[13px] right-[13px] top-3 flex-row items-center justify-between">
-            <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
-              <ChevronLeft size={20} color={colors.black} />
-            </CircularIconButton>
+            <View className="flex-row items-center gap-2">
+              <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
+                <ChevronLeft size={20} color={colors.black} />
+              </CircularIconButton>
+              <CircularIconButton
+                onPress={() => router.replace("/(tabs)")}
+                accessibilityLabel="Ir al inicio"
+              >
+                <Home size={18} color={colors.brand} />
+              </CircularIconButton>
+            </View>
             <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
               <Heart
                 size={18}
@@ -190,20 +198,7 @@ export default function PlantDetailScreen() {
         className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-2.5"
         style={{ paddingBottom: bottomBarPadding }}
       >
-        <View className="mb-2.5 flex-row items-center justify-between px-0.5">
-          <Pressable
-            accessibilityLabel="Ir al inicio"
-            onPress={() => router.replace("/(tabs)")}
-            className="flex-row items-center gap-1.5 rounded-full bg-rizoma-brandSoft px-3 py-1.5"
-            hitSlop={6}
-            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
-          >
-            <Home size={16} color={colors.brand} />
-            <Text className="text-xs text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
-              Inicio
-            </Text>
-          </Pressable>
-
+        <View className="mb-2.5 flex-row items-center justify-end px-0.5">
           <Pressable
             accessibilityLabel="Guardar en Mi Jardín"
             onPress={() => {
