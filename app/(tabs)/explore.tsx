@@ -21,55 +21,59 @@ export default function ExploreScreen() {
   return (
     <Screen>
       <ScreenHeader title="Catálogo" showNotificationBadge />
-      <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-        Filtra por luz, dificultad y mascotas.
-      </Text>
-
-      <View className="mb-3 flex-row flex-wrap gap-2">
-        {(["all", "low", "medium", "high"] as const).map((item) => (
-          <FilterChip
-            key={`light-${item}`}
-            label={item === "all" ? "Toda la luz" : lightLabel(item)}
-            active={filters.light === item}
-            onPress={() => setFilters((prev) => ({ ...prev, light: item }))}
-          />
-        ))}
-      </View>
-
-      <View className="mb-3 flex-row flex-wrap gap-2">
-        {(["all", "easy", "medium", "advanced"] as const).map((item) => (
-          <FilterChip
-            key={`diff-${item}`}
-            label={item === "all" ? "Toda dificultad" : difficultyLabel(item)}
-            active={filters.difficulty === item}
-            variant="brand"
-            onPress={() => setFilters((prev) => ({ ...prev, difficulty: item }))}
-          />
-        ))}
-      </View>
-
-      <View className="mb-3 flex-row flex-wrap gap-2">
-        {(["all", "yes", "no"] as const).map((item) => (
-          <FilterChip
-            key={`pet-${item}`}
-            label={item === "all" ? "Todas mascotas" : item === "yes" ? "Segura mascotas" : "No apta mascotas"}
-            active={filters.petFriendly === item}
-            onPress={() => setFilters((prev) => ({ ...prev, petFriendly: item }))}
-          />
-        ))}
-      </View>
-
-      <Text className="mb-3 text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
-        {filteredPlants.length === 0
-          ? "Sin coincidencias"
-          : `${filteredPlants.length} planta${filteredPlants.length === 1 ? "" : "s"}`}
-      </Text>
 
       <FlatList
         data={filteredPlants}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
+        ListHeaderComponent={
+          <View>
+            <Text className="mb-3 text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+              Filtra por luz, dificultad y mascotas.
+            </Text>
+
+            <View className="mb-3 flex-row flex-wrap gap-2">
+              {(["all", "low", "medium", "high"] as const).map((item) => (
+                <FilterChip
+                  key={`light-${item}`}
+                  label={item === "all" ? "Toda la luz" : lightLabel(item)}
+                  active={filters.light === item}
+                  onPress={() => setFilters((prev) => ({ ...prev, light: item }))}
+                />
+              ))}
+            </View>
+
+            <View className="mb-3 flex-row flex-wrap gap-2">
+              {(["all", "easy", "medium", "advanced"] as const).map((item) => (
+                <FilterChip
+                  key={`diff-${item}`}
+                  label={item === "all" ? "Toda dificultad" : difficultyLabel(item)}
+                  active={filters.difficulty === item}
+                  variant="brand"
+                  onPress={() => setFilters((prev) => ({ ...prev, difficulty: item }))}
+                />
+              ))}
+            </View>
+
+            <View className="mb-3 flex-row flex-wrap gap-2">
+              {(["all", "yes", "no"] as const).map((item) => (
+                <FilterChip
+                  key={`pet-${item}`}
+                  label={item === "all" ? "Todas mascotas" : item === "yes" ? "Segura mascotas" : "No apta mascotas"}
+                  active={filters.petFriendly === item}
+                  onPress={() => setFilters((prev) => ({ ...prev, petFriendly: item }))}
+                />
+              ))}
+            </View>
+
+            <Text className="mb-3 text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
+              {filteredPlants.length === 0
+                ? "Sin coincidencias"
+                : `${filteredPlants.length} planta${filteredPlants.length === 1 ? "" : "s"}`}
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View style={{ flex: 1 }}>
             <PlantCard

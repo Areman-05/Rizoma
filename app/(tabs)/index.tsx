@@ -202,6 +202,7 @@ export default function HomeScreen() {
           title="Ofertas especiales"
           subtitle={activeCategory.subtitle}
           actionLabel="Ver todo"
+          actionVariant="button"
           onActionPress={() => router.push("/(tabs)/explore")}
         />
       </View>

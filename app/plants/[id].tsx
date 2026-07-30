@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { Heart, Minus, Plus, ShoppingBag, Star } from "lucide-react-native";
+import { ChevronLeft, Heart, Home, Leaf, Minus, Plus, Star } from "lucide-react-native";
 import { getPlantById } from "@/src/data/plants";
 import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
-import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
 import { EmptyState } from "@/src/components/ui/EmptyState";
 import { Screen } from "@/src/components/ui/Screen";
@@ -15,10 +14,9 @@ import { formatPrice } from "@/src/utils/pricing";
 import { difficultyLabel } from "@/src/utils/plantLabels";
 import { colors } from "@/src/theme/tokens";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { ChevronLeft } from "lucide-react-native";
 
-/** Altura del chrome sticky (sin safe-area): fila única + enlace Mi Jardín. */
-const BOTTOM_BAR_CONTENT_HEIGHT = 124;
+/** Altura del chrome sticky (sin safe-area): fila secundaria + dock CTA. */
+const BOTTOM_BAR_CONTENT_HEIGHT = 108;
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -46,6 +44,7 @@ export default function PlantDetailScreen() {
 
   const saved = isInWishlist(plant.id);
   const related = getRelatedPlants(plant);
+  const lineTotal = formatPrice(plant.price * qty);
 
   const showToast = (message: string) => {
     setAddedToast(message);
@@ -65,13 +64,21 @@ export default function PlantDetailScreen() {
             <CircularIconButton onPress={() => router.back()} accessibilityLabel="Volver">
               <ChevronLeft size={20} color={colors.black} />
             </CircularIconButton>
-            <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
-              <Heart
-                size={18}
-                color={saved ? colors.brand : colors.black}
-                fill={saved ? colors.brand : "transparent"}
-              />
-            </CircularIconButton>
+            <View className="flex-row items-center gap-2">
+              <CircularIconButton
+                onPress={() => router.replace("/(tabs)")}
+                accessibilityLabel="Ir al inicio"
+              >
+                <Home size={18} color={colors.black} />
+              </CircularIconButton>
+              <CircularIconButton onPress={() => toggleWishlist(plant)} accessibilityLabel="Favorito">
+                <Heart
+                  size={18}
+                  color={saved ? colors.brand : colors.black}
+                  fill={saved ? colors.brand : "transparent"}
+                />
+              </CircularIconButton>
+            </View>
           </View>
           {plant.badge ? (
             <View className="absolute bottom-4 left-[13px] rounded-full bg-rizoma-brand px-3 py-1">
@@ -155,16 +162,16 @@ export default function PlantDetailScreen() {
           <Text className="mb-3 mt-8 text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
             Relacionadas
           </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View className="flex-row gap-2.5">
             {related.map((item) => (
               <Pressable
                 key={item.id}
                 onPress={() => router.push(`/plants/${item.id}`)}
-                className="mr-3 w-36 overflow-hidden rounded-3xl bg-rizoma-gray"
+                className="min-w-0 flex-1 overflow-hidden rounded-3xl bg-rizoma-gray"
               >
-                <Image source={{ uri: item.image }} style={{ width: "100%", height: 96 }} resizeMode="cover" />
+                <Image source={{ uri: item.image }} style={{ width: "100%", height: 88 }} resizeMode="cover" />
                 <Text
-                  className="px-3 py-2 text-sm text-rizoma-black"
+                  className="px-2 py-2 text-center text-xs text-rizoma-black"
                   style={{ fontFamily: "Inter_600SemiBold" }}
                   numberOfLines={1}
                 >
@@ -172,7 +179,7 @@ export default function PlantDetailScreen() {
                 </Text>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
         </View>
       </ScrollView>
 
@@ -188,21 +195,36 @@ export default function PlantDetailScreen() {
       ) : null}
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-3"
+        className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-2.5"
         style={{ paddingBottom: bottomBarPadding }}
       >
+        <Pressable
+          accessibilityLabel="Guardar en Mi Jardín"
+          onPress={() => {
+            addToGarden(plant);
+            showToast("Guardada en Mi Jardín");
+          }}
+          className="mb-2.5 flex-row items-center justify-center gap-1.5 py-1"
+          hitSlop={4}
+        >
+          <Leaf size={15} color={colors.brand} />
+          <Text className="text-[11px] text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
+            Guardar en Mi Jardín
+          </Text>
+        </Pressable>
+
         <View className="flex-row items-center gap-2.5">
-          <View className="h-14 flex-row items-center rounded-full bg-rizoma-gray px-1.5">
+          <View className="h-12 flex-row items-center rounded-full bg-rizoma-brandSoft px-1">
             <Pressable
               accessibilityLabel="Reducir cantidad"
               onPress={() => setQty((q) => Math.max(1, q - 1))}
-              className="h-10 w-10 items-center justify-center rounded-full"
+              className="h-10 w-10 items-center justify-center"
               hitSlop={6}
             >
-              <Minus size={16} color={colors.black} />
+              <Minus size={16} color={colors.brand} />
             </Pressable>
             <Text
-              className="min-w-[28px] text-center text-base text-rizoma-black"
+              className="min-w-[22px] text-center text-base text-rizoma-black"
               style={{ fontFamily: "Inter_700Bold" }}
             >
               {qty}
@@ -210,23 +232,12 @@ export default function PlantDetailScreen() {
             <Pressable
               accessibilityLabel="Aumentar cantidad"
               onPress={() => setQty((q) => q + 1)}
-              className="h-10 w-10 items-center justify-center rounded-full"
+              className="h-10 w-10 items-center justify-center"
               hitSlop={6}
             >
-              <Plus size={16} color={colors.black} />
+              <Plus size={16} color={colors.brand} />
             </Pressable>
           </View>
-
-          <Pressable
-            accessibilityLabel="Añadir a favoritos"
-            onPress={() => {
-              toggleWishlist(plant);
-              showToast(saved ? "Quitada de favoritos" : "Añadida a favoritos");
-            }}
-            className="h-14 w-14 items-center justify-center rounded-full border border-rizoma-border"
-          >
-            <Heart size={18} color={saved ? colors.brand : colors.black} fill={saved ? colors.brand : "transparent"} />
-          </Pressable>
 
           <Pressable
             accessibilityLabel="Añadir al carrito"
@@ -234,27 +245,14 @@ export default function PlantDetailScreen() {
               addToCart(plant, qty);
               showToast(`${qty} añadida${qty > 1 ? "s" : ""} al carrito`);
             }}
-            className="h-14 w-14 items-center justify-center rounded-full border border-rizoma-border"
+            className="h-12 flex-1 items-center justify-center rounded-full bg-rizoma-brand px-4"
+            style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
           >
-            <ShoppingBag size={18} color={colors.black} />
+            <Text className="text-base text-white" style={{ fontFamily: "Inter_700Bold" }}>
+              Añadir · {lineTotal}
+            </Text>
           </Pressable>
-
-          <View className="flex-1">
-            <RizomaButton
-              label="Comprar ahora"
-              onPress={() => {
-                addToCart(plant, qty);
-                router.push("/(tabs)/cart");
-              }}
-            />
-          </View>
         </View>
-
-        <Pressable onPress={() => addToGarden(plant)} className="mt-1.5 py-1.5">
-          <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-            Guardar en Mi Jardín
-          </Text>
-        </Pressable>
       </View>
     </SafeAreaView>
   );
