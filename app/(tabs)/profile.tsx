@@ -428,7 +428,7 @@ export default function ProfileScreen() {
       icon: Pencil,
       onPress: () => setEditSheetOpen(true),
     },
-    { href: "/notifications", label: "Notificaciones", icon: Bell },
+    { href: "/notification-settings", label: "Notificaciones", icon: Bell },
     { href: "/login", label: "Cuenta / Login", icon: User },
   ];
 
@@ -494,19 +494,6 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             ) : null}
-
-            <Pressable
-              onPress={() => setEditSheetOpen(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Editar perfil"
-              className="mt-4 flex-row items-center gap-1.5 rounded-full bg-white px-4 py-2"
-              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-            >
-              <Pencil size={14} color={colors.brand} />
-              <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-                Editar perfil
-              </Text>
-            </Pressable>
           </View>
 
           {wishlist.length === 0 && garden.length === 0 && orders.length === 0 ? (

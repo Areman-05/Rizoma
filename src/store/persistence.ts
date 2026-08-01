@@ -14,6 +14,40 @@ const ONBOARDING_KEY = "rizoma.onboarding.v1";
 const PROFILE_NAME_KEY = "rizoma.profileName.v1";
 const PROFILE_AVATAR_KEY = "rizoma.profileAvatar.v1";
 const CHAT_KEY = "@rizoma/chat-threads";
+const NOTIF_PREFS_KEY = "rizoma.notificationPrefs.v1";
+
+export type NotificationPrefs = {
+  /** Push del sistema / dispositivo */
+  pushEnabled: boolean;
+  orders: boolean;
+  offers: boolean;
+  catalog: boolean;
+  chat: boolean;
+  careReminders: boolean;
+};
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  pushEnabled: false,
+  orders: true,
+  offers: true,
+  catalog: true,
+  chat: true,
+  careReminders: false,
+};
+
+export async function loadNotificationPrefs(): Promise<NotificationPrefs> {
+  try {
+    const raw = await AsyncStorage.getItem(NOTIF_PREFS_KEY);
+    if (!raw) return { ...DEFAULT_NOTIFICATION_PREFS };
+    return { ...DEFAULT_NOTIFICATION_PREFS, ...(JSON.parse(raw) as Partial<NotificationPrefs>) };
+  } catch {
+    return { ...DEFAULT_NOTIFICATION_PREFS };
+  }
+}
+
+export async function saveNotificationPrefs(prefs: NotificationPrefs) {
+  await AsyncStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
+}
 
 /** Avatar por defecto: preset local (sin red). */
 export const DEFAULT_PROFILE_AVATAR_URI = DEFAULT_AVATAR_PRESET_ID;

@@ -55,6 +55,7 @@ export default function RootLayout() {
                   <Stack.Screen name="match" />
                   <Stack.Screen name="garden" />
                   <Stack.Screen name="notifications" />
+                  <Stack.Screen name="notification-settings" />
                   <Stack.Screen name="chat/[id]" />
                 </Stack>
               </OnboardingGate>
