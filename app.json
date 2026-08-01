@@ -26,6 +26,14 @@
       "expo-router",
       "expo-status-bar",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F2FBF6",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Rizoma necesita acceso a tus fotos para actualizar tu avatar.",

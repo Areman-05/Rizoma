@@ -1,15 +1,13 @@
 import { useEffect } from "react";
+import { View } from "react-native";
 import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ActivityIndicator, View } from "react-native";
 import "@/src/polyfills/colorScheme";
 import { FontProvider } from "@/src/theme/FontProvider";
 import { ShopProvider } from "@/src/store/ShopContext";
 import { GardenProvider } from "@/src/store/GardenContext";
 import { ChatProvider } from "@/src/store/ChatContext";
 import { OnboardingProvider, useOnboarding } from "@/src/store/OnboardingContext";
-import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
-import { colors } from "@/src/theme/tokens";
 import "../global.css";
 
 function OnboardingGate({ children }: { children: React.ReactNode }) {
@@ -28,13 +26,9 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
     }
   }, [ready, needsOnboarding, segments]);
 
+  // Fondo blanco neutro (mismo que splash) — sin BrandSplash para evitar el doble flash.
   if (!ready) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white" accessibilityLabel="Cargando Rizoma">
-        <RizomaLogo size="lg" />
-        <ActivityIndicator className="mt-6" color={colors.brand} />
-      </View>
-    );
+    return <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />;
   }
 
   return <>{children}</>;

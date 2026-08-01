@@ -1,10 +1,12 @@
 import { Link, router, type Href } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Modal,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   useWindowDimensions,
@@ -47,6 +49,10 @@ import {
   saveProfileName,
 } from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
+
+const SCREEN_FADE_MS = 380;
+const SHEET_SLIDE_MS = 320;
+const SHEET_BACKDROP_MS = 240;
 
 /** Ubicación mock alineada con el header de Inicio (no hay clave en persistence). */
 const PROFILE_LOCATION = "Barcelona, España";
@@ -149,18 +155,66 @@ function EditProfileSheet({
   onSave: (name: string, avatar: string) => void;
 }) {
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const sheetPad = 20;
   const cellSize = (screenWidth - sheetPad * 2 - PRESET_GAP * (PRESET_COLS - 1)) / PRESET_COLS;
 
   const [draftName, setDraftName] = useState(initialName);
   const [draftAvatar, setDraftAvatar] = useState(initialAvatar);
+  const [modalMounted, setModalMounted] = useState(visible);
+
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslate = useRef(new Animated.Value(screenHeight)).current;
 
   useEffect(() => {
     if (!visible) return;
     setDraftName(initialName);
     setDraftAvatar(initialAvatar);
   }, [visible, initialName, initialAvatar]);
+
+  useEffect(() => {
+    if (visible) {
+      setModalMounted(true);
+      backdropOpacity.setValue(0);
+      sheetTranslate.setValue(screenHeight * 0.35);
+      const frame = requestAnimationFrame(() => {
+        Animated.parallel([
+          Animated.timing(backdropOpacity, {
+            toValue: 1,
+            duration: SHEET_BACKDROP_MS,
+            useNativeDriver: true,
+          }),
+          Animated.timing(sheetTranslate, {
+            toValue: 0,
+            duration: SHEET_SLIDE_MS,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+
+    if (!modalMounted) return;
+
+    const anim = Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: SHEET_BACKDROP_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(sheetTranslate, {
+        toValue: screenHeight * 0.25,
+        duration: SHEET_SLIDE_MS,
+        useNativeDriver: true,
+      }),
+    ]);
+    anim.start(({ finished }) => {
+      if (finished) setModalMounted(false);
+    });
+    return () => anim.stop();
+    // modalMounted solo se lee al cerrar; no debe re-disparar la entrada.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, backdropOpacity, sheetTranslate, screenHeight]);
 
   const pickFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -189,14 +243,27 @@ function EditProfileSheet({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end bg-black/40">
+    <Modal visible={modalMounted} transparent animationType="none" onRequestClose={onClose}>
+      <View className="flex-1 justify-end">
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: "rgba(0,0,0,0.4)", opacity: backdropOpacity },
+          ]}
+        />
         <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Cerrar editar perfil" />
-        <View
+        <Animated.View
           className="max-h-[88%] rounded-t-3xl bg-white"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
+          style={{
+            paddingBottom: Math.max(insets.bottom, 16) + 8,
+            transform: [{ translateY: sheetTranslate }],
+          }}
         >
-          <View className="flex-row items-center justify-between px-5 pb-2 pt-4">
+          <View className="items-center pt-3">
+            <View className="mb-1 h-1 w-10 rounded-full bg-rizoma-border" />
+          </View>
+          <View className="flex-row items-center justify-between px-5 pb-2 pt-2">
             <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
               Editar perfil
             </Text>
@@ -232,7 +299,7 @@ function EditProfileSheet({
               placeholder="Tu nombre"
               placeholderTextColor={colors.grayText}
               returnKeyType="done"
-              className="mb-5 rounded-2xl border border-rizoma-border bg-white px-4 py-3.5 text-base text-rizoma-black"
+              className="mb-5 rounded-2xl border border-rizoma-border bg-rizoma-gray px-4 py-3.5 text-base text-rizoma-black"
               style={{ fontFamily: "Inter_500Medium" }}
               accessibilityLabel="Nombre de perfil"
             />
@@ -312,7 +379,7 @@ function EditProfileSheet({
               </Pressable>
             </View>
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -325,10 +392,28 @@ export default function ProfileScreen() {
   const [avatarUri, setAvatarUri] = useState(DEFAULT_PROFILE_AVATAR_URI);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
 
+  const screenOpacity = useRef(new Animated.Value(0)).current;
+  const screenTranslate = useRef(new Animated.Value(10)).current;
+
   useEffect(() => {
     loadProfileName().then(setName);
     loadProfileAvatar().then(setAvatarUri);
   }, []);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(screenOpacity, {
+        toValue: 1,
+        duration: SCREEN_FADE_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(screenTranslate, {
+        toValue: 0,
+        duration: SCREEN_FADE_MS,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [screenOpacity, screenTranslate]);
 
   const commitProfile = async (nextName: string, nextAvatar: string) => {
     setName(nextName);
@@ -379,82 +464,102 @@ export default function ProfileScreen() {
 
   return (
     <Screen scroll>
-      <ScreenHeader title="Perfil" showBack={false} showNotificationBadge />
+      <Animated.View
+        style={{
+          opacity: screenOpacity,
+          transform: [{ translateY: screenTranslate }],
+        }}
+      >
+        <ScreenHeader title="Perfil" showBack={false} showNotificationBadge />
 
-      <View className="mb-6 items-center rounded-3xl bg-rizoma-brandSoft px-4 py-6">
-        <ProfileAvatar
-          value={avatarUri}
-          size={96}
-          borderWidth={2}
-          borderColor={colors.white}
-          accessibilityLabel="Avatar de perfil"
-        />
+        <View className="mb-6 items-center rounded-3xl bg-rizoma-brandSoft px-5 py-7">
+          <ProfileAvatar
+            value={avatarUri}
+            size={96}
+            borderWidth={2}
+            borderColor={colors.white}
+            accessibilityLabel="Avatar de perfil"
+          />
 
-        <View className="mt-4 w-full items-center">
-          <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-            {name}
-          </Text>
+          <View className="mt-4 w-full items-center">
+            <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+              {name}
+            </Text>
 
-          {PROFILE_LOCATION ? (
-            <View className="mt-2 flex-row items-center gap-1">
-              <MapPin size={14} color={colors.grayText} />
-              <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-                {PROFILE_LOCATION}
+            {PROFILE_LOCATION ? (
+              <View className="mt-2 flex-row items-center gap-1">
+                <MapPin size={14} color={colors.grayText} />
+                <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
+                  {PROFILE_LOCATION}
+                </Text>
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={() => setEditSheetOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Editar perfil"
+              className="mt-4 flex-row items-center gap-1.5 rounded-full bg-white px-4 py-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+            >
+              <Pencil size={14} color={colors.brand} />
+              <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+                Editar perfil
               </Text>
+            </Pressable>
+          </View>
+
+          {wishlist.length === 0 && garden.length === 0 && orders.length === 0 ? (
+            <View className="mt-5 w-full">
+              <Text
+                className="mb-3 text-center text-sm text-rizoma-secondaryText"
+                style={{ fontFamily: "Inter_400Regular" }}
+              >
+                Empieza a guardar plantas o haz tu primer pedido.
+              </Text>
+              <RizomaButton label="Explorar catálogo" onPress={() => router.push("/(tabs)")} />
             </View>
           ) : null}
         </View>
 
-        {wishlist.length === 0 && garden.length === 0 && orders.length === 0 ? (
-          <View className="mt-5 w-full">
-            <Text
-              className="mb-3 text-center text-sm text-rizoma-secondaryText"
-              style={{ fontFamily: "Inter_400Regular" }}
-            >
-              Empieza a guardar plantas o haz tu primer pedido.
+        <View className="mb-6 flex-row gap-2.5">
+          <StatChip label="Pedidos" value={orders.length} onPress={() => router.push("/orders")} />
+          <StatChip label="Favoritos" value={wishlist.length} onPress={() => router.push("/(tabs)/wishlist")} />
+          <StatChip label="Jardín" value={garden.length} onPress={() => router.push("/garden")} />
+        </View>
+
+        {cartCount > 0 ? (
+          <Pressable
+            onPress={() => router.push("/(tabs)/cart")}
+            className="mb-5 flex-row items-center justify-between rounded-2xl border border-rizoma-border bg-white px-4 py-3.5"
+            accessibilityRole="button"
+            accessibilityLabel="Ir al carrito"
+          >
+            <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
+              Tienes {cartCount} artículo{cartCount === 1 ? "" : "s"} en el carrito
             </Text>
-            <RizomaButton label="Explorar catálogo" onPress={() => router.push("/(tabs)")} />
-          </View>
+            <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+              Ver
+            </Text>
+          </Pressable>
         ) : null}
-      </View>
 
-      <View className="mb-6 flex-row gap-2">
-        <StatChip label="Pedidos" value={orders.length} onPress={() => router.push("/orders")} />
-        <StatChip label="Favoritos" value={wishlist.length} onPress={() => router.push("/(tabs)/wishlist")} />
-        <StatChip label="Jardín" value={garden.length} onPress={() => router.push("/garden")} />
-      </View>
+        <SectionHeader title="Cuenta" subtitle="Perfil, alertas y acceso" />
+        <SettingsGroup rows={accountRows} />
 
-      {cartCount > 0 ? (
-        <Pressable
-          onPress={() => router.push("/(tabs)/cart")}
-          className="mb-5 flex-row items-center justify-between rounded-2xl border border-rizoma-border bg-white px-4 py-3"
-          accessibilityRole="button"
-          accessibilityLabel="Ir al carrito"
-        >
-          <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_500Medium" }}>
-            Tienes {cartCount} artículo{cartCount === 1 ? "" : "s"} en el carrito
-          </Text>
-          <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-            Ver
-          </Text>
-        </Pressable>
-      ) : null}
+        <SectionHeader title="Pedidos y colección" subtitle="Atajos a tu actividad" />
+        <SettingsGroup rows={collectionRows} />
 
-      <SectionHeader title="Cuenta" subtitle="Perfil, alertas y acceso" />
-      <SettingsGroup rows={accountRows} />
+        <SectionHeader title="Descubrir" />
+        <SettingsGroup rows={exploreRows} />
 
-      <SectionHeader title="Pedidos y colección" subtitle="Atajos a tu actividad" />
-      <SettingsGroup rows={collectionRows} />
+        <SectionHeader title="Sesión" />
+        <SettingsGroup rows={sessionRows} />
 
-      <SectionHeader title="Descubrir" />
-      <SettingsGroup rows={exploreRows} />
-
-      <SectionHeader title="Sesión" />
-      <SettingsGroup rows={sessionRows} />
-
-      <Text className="mt-1 px-1 text-center text-xs text-rizoma-grayText" style={{ fontFamily: "Inter_400Regular" }}>
-        Privacidad y términos · Rizoma demo
-      </Text>
+        <Text className="mt-2 px-1 text-center text-xs text-rizoma-grayText" style={{ fontFamily: "Inter_400Regular" }}>
+          Privacidad y términos · Rizoma demo
+        </Text>
+      </Animated.View>
 
       <EditProfileSheet
         visible={editSheetOpen}
