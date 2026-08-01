@@ -2,9 +2,9 @@ import { Link, router, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Image,
   Modal,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   useWindowDimensions,
@@ -14,7 +14,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Bell,
-  Camera,
   ChevronRight,
   Heart,
   HelpCircle,
@@ -28,10 +27,15 @@ import {
   User,
   X,
 } from "lucide-react-native";
+import { ProfileAvatar } from "@/src/components/profile/ProfileAvatar";
+import {
+  AVATAR_PRESETS,
+  isAvatarPresetId,
+  normalizeAvatarValue,
+} from "@/src/components/profile/avatarPresets";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
-import { CircularIconButton, iconTone } from "@/src/components/ui/CircularIconButton";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { useShop } from "@/src/store/ShopContext";
 import { useGarden } from "@/src/store/GardenContext";
@@ -46,59 +50,6 @@ import { colors } from "@/src/theme/tokens";
 
 /** Ubicación mock alineada con el header de Inicio (no hay clave en persistence). */
 const PROFILE_LOCATION = "Barcelona, España";
-
-const PRESET_AVATARS: { id: string; uri: string; label: string }[] = [
-  {
-    id: "monstera",
-    label: "Monstera",
-    uri: "https://api.dicebear.com/7.x/avataaars/png?seed=Monstera&backgroundColor=e8f8f0",
-  },
-  {
-    id: "ficus",
-    label: "Ficus",
-    uri: "https://api.dicebear.com/7.x/lorelei/png?seed=Ficus&backgroundColor=c8e6c9",
-  },
-  {
-    id: "suculenta",
-    label: "Suculenta",
-    uri: "https://api.dicebear.com/7.x/fun-emoji/png?seed=Suculenta&backgroundColor=fff8e1",
-  },
-  {
-    id: "helecho",
-    label: "Helecho",
-    uri: "https://api.dicebear.com/7.x/bottts/png?seed=Helecho&backgroundColor=01b763",
-  },
-  {
-    id: "orquidea",
-    label: "Orquídea",
-    uri: "https://api.dicebear.com/7.x/notionists/png?seed=Orquidea&backgroundColor=a5d6a7",
-  },
-  {
-    id: "pothos",
-    label: "Pothos",
-    uri: "https://api.dicebear.com/7.x/adventurer/png?seed=Pothos&backgroundColor=e8f8f0",
-  },
-  {
-    id: "calathea",
-    label: "Calathea",
-    uri: "https://api.dicebear.com/7.x/big-ears/png?seed=Calathea&backgroundColor=c8e6c9",
-  },
-  {
-    id: "aloe",
-    label: "Aloe",
-    uri: "https://api.dicebear.com/7.x/croodles/png?seed=Aloe&backgroundColor=fff3e0",
-  },
-  {
-    id: "hoja",
-    label: "Hoja",
-    uri: "https://api.dicebear.com/7.x/icons/png?seed=Hoja&icon=leaf&backgroundColor=01b763",
-  },
-  {
-    id: "rizoma",
-    label: "Rizoma",
-    uri: "https://api.dicebear.com/7.x/shapes/png?seed=Rizoma&backgroundColor=2e7d32",
-  },
-];
 
 const PRESET_GAP = 12;
 const PRESET_COLS = 5;
@@ -184,21 +135,32 @@ function StatChip({
   );
 }
 
-function AvatarPickerSheet({
+function EditProfileSheet({
   visible,
-  currentUri,
+  initialName,
+  initialAvatar,
   onClose,
-  onSelect,
+  onSave,
 }: {
   visible: boolean;
-  currentUri: string;
+  initialName: string;
+  initialAvatar: string;
   onClose: () => void;
-  onSelect: (uri: string) => void;
+  onSave: (name: string, avatar: string) => void;
 }) {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const sheetPad = 20;
   const cellSize = (screenWidth - sheetPad * 2 - PRESET_GAP * (PRESET_COLS - 1)) / PRESET_COLS;
+
+  const [draftName, setDraftName] = useState(initialName);
+  const [draftAvatar, setDraftAvatar] = useState(initialAvatar);
+
+  useEffect(() => {
+    if (!visible) return;
+    setDraftName(initialName);
+    setDraftAvatar(initialAvatar);
+  }, [visible, initialName, initialAvatar]);
 
   const pickFromGallery = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -218,20 +180,25 @@ function AvatarPickerSheet({
     });
 
     if (result.canceled || !result.assets[0]?.uri) return;
-    onSelect(result.assets[0].uri);
+    setDraftAvatar(result.assets[0].uri);
+  };
+
+  const handleSave = () => {
+    const nextName = draftName.trim() || "Amante de plantas";
+    onSave(nextName, normalizeAvatarValue(draftAvatar));
   };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/40">
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Cerrar selector de avatar" />
+        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Cerrar editar perfil" />
         <View
-          className="rounded-t-3xl bg-white px-5 pt-4"
+          className="max-h-[88%] rounded-t-3xl bg-white"
           style={{ paddingBottom: Math.max(insets.bottom, 16) + 8 }}
         >
-          <View className="mb-4 flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between px-5 pb-2 pt-4">
             <Text className="text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              Elige tu avatar
+              Editar perfil
             </Text>
             <Pressable
               onPress={onClose}
@@ -244,54 +211,107 @@ function AvatarPickerSheet({
             </Pressable>
           </View>
 
-          <Text
-            className="mb-3 text-sm text-rizoma-secondaryText"
-            style={{ fontFamily: "Inter_400Regular" }}
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: sheetPad, paddingBottom: 8 }}
           >
-            Avatares predeterminados
-          </Text>
+            <View className="mb-5 items-center pt-2">
+              <ProfileAvatar value={draftAvatar} size={88} borderWidth={2} borderColor={colors.white} />
+            </View>
 
-          <View className="mb-5 flex-row flex-wrap" style={{ gap: PRESET_GAP }}>
-            {PRESET_AVATARS.map((preset) => {
-              const selected = currentUri === preset.uri;
-              return (
-                <Pressable
-                  key={preset.id}
-                  onPress={() => onSelect(preset.uri)}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Avatar predeterminado ${preset.label}`}
-                  accessibilityState={{ selected }}
-                  style={{
-                    width: cellSize,
-                    height: cellSize,
-                    borderRadius: cellSize / 2,
-                    borderWidth: selected ? 3 : 2,
-                    borderColor: selected ? colors.brand : colors.border,
-                    overflow: "hidden",
-                  }}
-                >
-                  <Image
-                    source={{ uri: preset.uri }}
-                    style={{ width: "100%", height: "100%" }}
-                    accessibilityIgnoresInvertColors
-                  />
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Pressable
-            onPress={pickFromGallery}
-            accessibilityRole="button"
-            accessibilityLabel="Subir de la galería"
-            className="mb-2 flex-row items-center justify-center gap-2 rounded-2xl border border-rizoma-brand bg-rizoma-brandSoft px-4 py-3.5"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-          >
-            <ImagePlus size={20} color={colors.brand} />
-            <Text className="text-base text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-              Subir de la galería
+            <Text
+              className="mb-2 text-sm text-rizoma-secondaryText"
+              style={{ fontFamily: "Inter_500Medium" }}
+            >
+              Nombre
             </Text>
-          </Pressable>
+            <TextInput
+              value={draftName}
+              onChangeText={setDraftName}
+              placeholder="Tu nombre"
+              placeholderTextColor={colors.grayText}
+              returnKeyType="done"
+              className="mb-5 rounded-2xl border border-rizoma-border bg-white px-4 py-3.5 text-base text-rizoma-black"
+              style={{ fontFamily: "Inter_500Medium" }}
+              accessibilityLabel="Nombre de perfil"
+            />
+
+            <Text
+              className="mb-3 text-sm text-rizoma-secondaryText"
+              style={{ fontFamily: "Inter_500Medium" }}
+            >
+              Foto de perfil
+            </Text>
+
+            <View className="mb-4 flex-row flex-wrap" style={{ gap: PRESET_GAP }}>
+              {AVATAR_PRESETS.map((preset) => {
+                const selected = draftAvatar === preset.id;
+                const ring = selected ? 3 : 2;
+                return (
+                  <Pressable
+                    key={preset.id}
+                    onPress={() => setDraftAvatar(preset.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Avatar ${preset.label}`}
+                    accessibilityState={{ selected }}
+                    style={{
+                      width: cellSize,
+                      height: cellSize,
+                      borderRadius: cellSize / 2,
+                      borderWidth: ring,
+                      borderColor: selected ? colors.brand : colors.border,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <ProfileAvatar value={preset.id} size={cellSize - ring * 2} />
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {!isAvatarPresetId(draftAvatar) ? (
+              <View className="mb-4 items-center">
+                <Text
+                  className="mb-2 text-xs text-rizoma-secondaryText"
+                  style={{ fontFamily: "Inter_400Regular" }}
+                >
+                  Foto de la galería seleccionada
+                </Text>
+                <ProfileAvatar value={draftAvatar} size={56} borderWidth={2} borderColor={colors.brand} />
+              </View>
+            ) : null}
+
+            <Pressable
+              onPress={pickFromGallery}
+              accessibilityRole="button"
+              accessibilityLabel="Subir de la galería"
+              className="mb-5 flex-row items-center justify-center gap-2 rounded-2xl border border-rizoma-brand bg-rizoma-brandSoft px-4 py-3.5"
+              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+            >
+              <ImagePlus size={20} color={colors.brand} />
+              <Text className="text-base text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+                Subir de la galería
+              </Text>
+            </Pressable>
+
+            <View className="mb-2 gap-2">
+              <RizomaButton label="Guardar" onPress={handleSave} />
+              <Pressable
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel="Cancelar"
+                className="items-center rounded-full px-5 py-3.5"
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              >
+                <Text className="text-base text-rizoma-secondaryText" style={{ fontFamily: "Inter_600SemiBold" }}>
+                  Cancelar
+                </Text>
+              </Pressable>
+            </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -303,32 +323,25 @@ export default function ProfileScreen() {
   const { garden } = useGarden();
   const [name, setName] = useState("Amante de plantas");
   const [avatarUri, setAvatarUri] = useState(DEFAULT_PROFILE_AVATAR_URI);
-  const [editing, setEditing] = useState(false);
-  const [avatarSheetOpen, setAvatarSheetOpen] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
 
   useEffect(() => {
     loadProfileName().then(setName);
     loadProfileAvatar().then(setAvatarUri);
   }, []);
 
-  const commitName = async () => {
-    const next = name.trim() || "Amante de plantas";
-    setName(next);
-    setEditing(false);
-    await saveProfileName(next);
-  };
-
-  const commitAvatar = async (uri: string) => {
-    setAvatarUri(uri);
-    setAvatarSheetOpen(false);
-    await saveProfileAvatar(uri);
+  const commitProfile = async (nextName: string, nextAvatar: string) => {
+    setName(nextName);
+    setAvatarUri(nextAvatar);
+    setEditSheetOpen(false);
+    await Promise.all([saveProfileName(nextName), saveProfileAvatar(nextAvatar)]);
   };
 
   const accountRows: ProfileRow[] = [
     {
-      label: "Editar nombre",
+      label: "Editar perfil",
       icon: Pencil,
-      onPress: () => setEditing(true),
+      onPress: () => setEditSheetOpen(true),
     },
     { href: "/notifications", label: "Notificaciones", icon: Bell },
     { href: "/login", label: "Cuenta / Login", icon: User },
@@ -369,54 +382,18 @@ export default function ProfileScreen() {
       <ScreenHeader title="Perfil" showBack={false} showNotificationBadge />
 
       <View className="mb-6 items-center rounded-3xl bg-rizoma-brandSoft px-4 py-6">
-        <View className="relative">
-          <Image
-            source={{ uri: avatarUri }}
-            className="h-24 w-24 rounded-full border-2 border-white"
-            accessibilityLabel="Avatar de perfil"
-          />
-          <Pressable
-            onPress={() => setAvatarSheetOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Cambiar foto de perfil"
-            className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-rizoma-brand"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-            hitSlop={6}
-          >
-            <Camera size={16} color={colors.white} />
-          </Pressable>
-        </View>
+        <ProfileAvatar
+          value={avatarUri}
+          size={96}
+          borderWidth={2}
+          borderColor={colors.white}
+          accessibilityLabel="Avatar de perfil"
+        />
 
         <View className="mt-4 w-full items-center">
-          {editing ? (
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              onBlur={commitName}
-              onSubmitEditing={commitName}
-              autoFocus
-              returnKeyType="done"
-              className="w-full rounded-2xl border border-rizoma-border bg-white px-4 py-3 text-center text-rizoma-black"
-              style={{ fontFamily: "Inter_700Bold", fontSize: 22 }}
-              accessibilityLabel="Nombre de perfil"
-            />
-          ) : (
-            <Pressable
-              onPress={() => setEditing(true)}
-              accessibilityRole="button"
-              accessibilityLabel="Editar nombre"
-              className="items-center"
-            >
-              <View className="flex-row items-center gap-2">
-                <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-                  {name}
-                </Text>
-                <CircularIconButton accessibilityLabel="Editar nombre" size={32} onPress={() => setEditing(true)}>
-                  <Pencil size={14} color={iconTone.dark} />
-                </CircularIconButton>
-              </View>
-            </Pressable>
-          )}
+          <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            {name}
+          </Text>
 
           {PROFILE_LOCATION ? (
             <View className="mt-2 flex-row items-center gap-1">
@@ -463,7 +440,7 @@ export default function ProfileScreen() {
         </Pressable>
       ) : null}
 
-      <SectionHeader title="Cuenta" subtitle="Nombre, alertas y acceso" />
+      <SectionHeader title="Cuenta" subtitle="Perfil, alertas y acceso" />
       <SettingsGroup rows={accountRows} />
 
       <SectionHeader title="Pedidos y colección" subtitle="Atajos a tu actividad" />
@@ -479,11 +456,12 @@ export default function ProfileScreen() {
         Privacidad y términos · Rizoma demo
       </Text>
 
-      <AvatarPickerSheet
-        visible={avatarSheetOpen}
-        currentUri={avatarUri}
-        onClose={() => setAvatarSheetOpen(false)}
-        onSelect={commitAvatar}
+      <EditProfileSheet
+        visible={editSheetOpen}
+        initialName={name}
+        initialAvatar={avatarUri}
+        onClose={() => setEditSheetOpen(false)}
+        onSave={commitProfile}
       />
     </Screen>
   );

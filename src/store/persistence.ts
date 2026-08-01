@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { DEFAULT_AVATAR_PRESET_ID, normalizeAvatarValue } from "@/src/components/profile/avatarPresets";
 import { CartLine } from "@/src/store/ShopContext";
 import { Plant } from "@/src/types/catalog";
 import { Order } from "@/src/types/orders";
@@ -14,9 +15,8 @@ const PROFILE_NAME_KEY = "rizoma.profileName.v1";
 const PROFILE_AVATAR_KEY = "rizoma.profileAvatar.v1";
 const CHAT_KEY = "@rizoma/chat-threads";
 
-/** Avatar por defecto (Unsplash) hasta que el usuario elija otro. */
-export const DEFAULT_PROFILE_AVATAR_URI =
-  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240";
+/** Avatar por defecto: preset local (sin red). */
+export const DEFAULT_PROFILE_AVATAR_URI = DEFAULT_AVATAR_PRESET_ID;
 
 /** Evita pantallas de carga eternas si AsyncStorage cuelga tras reiniciar el emulador. */
 export const STORAGE_LOAD_TIMEOUT_MS = 2500;
@@ -110,14 +110,15 @@ export async function saveProfileName(name: string) {
 
 export async function loadProfileAvatar(): Promise<string> {
   try {
-    return (await AsyncStorage.getItem(PROFILE_AVATAR_KEY)) ?? DEFAULT_PROFILE_AVATAR_URI;
+    const raw = await AsyncStorage.getItem(PROFILE_AVATAR_KEY);
+    return normalizeAvatarValue(raw);
   } catch {
     return DEFAULT_PROFILE_AVATAR_URI;
   }
 }
 
 export async function saveProfileAvatar(uri: string) {
-  await AsyncStorage.setItem(PROFILE_AVATAR_KEY, uri);
+  await AsyncStorage.setItem(PROFILE_AVATAR_KEY, normalizeAvatarValue(uri));
 }
 
 /** Returns null when there is no saved chat data (caller should seed). Empty threads = user cleared history. */

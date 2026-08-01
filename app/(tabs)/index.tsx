@@ -14,6 +14,7 @@ import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
 import { shopCategories, ShopCategoryId } from "@/src/data/shopCategories";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
+import { ProfileAvatar } from "@/src/components/profile/ProfileAvatar";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { FilterChip } from "@/src/components/ui/FilterChip";
 import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
@@ -199,11 +200,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           accessibilityLabel="Ir al perfil"
         >
-          <Image
-            source={{ uri: profileAvatar }}
-            className="h-11 w-11 rounded-full"
-            accessibilityLabel="Avatar de perfil"
-          />
+          <ProfileAvatar value={profileAvatar} size={44} accessibilityLabel="Avatar de perfil" />
           <View>
             <Text className="text-base text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
               Hola, {profileName}
