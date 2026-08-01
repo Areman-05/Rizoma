@@ -8,7 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { MapPin, Bell } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
@@ -23,7 +23,11 @@ import { SkeletonCard } from "@/src/components/ui/SkeletonCard";
 import { Screen } from "@/src/components/ui/Screen";
 import { useShop } from "@/src/store/ShopContext";
 import { plantsByCategory } from "@/src/utils/catalogFilters";
-import { loadProfileName } from "@/src/store/persistence";
+import {
+  DEFAULT_PROFILE_AVATAR_URI,
+  loadProfileAvatar,
+  loadProfileName,
+} from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
 
 const promos = [
@@ -48,6 +52,7 @@ export default function HomeScreen() {
   const [promoIndex, setPromoIndex] = useState(0);
   const [pageWidth, setPageWidth] = useState(0);
   const [profileName, setProfileName] = useState("amante de las plantas");
+  const [profileAvatar, setProfileAvatar] = useState(DEFAULT_PROFILE_AVATAR_URI);
   const [autoTick, setAutoTick] = useState(0);
   const { toggleWishlist, isInWishlist, hydrated } = useShop();
 
@@ -126,15 +131,20 @@ export default function HomeScreen() {
     };
   }, [clearAutoTimer, clearReleaseTimer]);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadProfileName().then((name) => {
-      if (!cancelled && mountedRef.current) setProfileName(name.toLowerCase());
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      loadProfileName().then((name) => {
+        if (!cancelled) setProfileName(name.toLowerCase());
+      });
+      loadProfileAvatar().then((uri) => {
+        if (!cancelled) setProfileAvatar(uri);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -190,7 +200,7 @@ export default function HomeScreen() {
           accessibilityLabel="Ir al perfil"
         >
           <Image
-            source={{ uri: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120" }}
+            source={{ uri: profileAvatar }}
             className="h-11 w-11 rounded-full"
             accessibilityLabel="Avatar de perfil"
           />

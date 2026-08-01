@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FlatList, Text, useWindowDimensions, View } from "react-native";
 import { router } from "expo-router";
-import { Heart } from "lucide-react-native";
+import { Heart, Search } from "lucide-react-native";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
 import { useShop } from "@/src/store/ShopContext";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
+import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { getPlantById } from "@/src/data/plants";
 
@@ -17,11 +18,27 @@ const SCREEN_H_PADDING = 26;
 export default function WishlistScreen() {
   const { wishlist, toggleWishlist, isInWishlist, addToCart } = useShop();
   const [toast, setToast] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const { width: screenWidth } = useWindowDimensions();
   const columnWidth = (screenWidth - SCREEN_H_PADDING - COLUMN_GAP) / 2;
 
   // Preferir datos frescos del catálogo (nombres en español) sobre el snapshot persistido
-  const items = wishlist.map((item) => getPlantById(item.id) ?? item);
+  const items = useMemo(
+    () => wishlist.map((item) => getPlantById(item.id) ?? item),
+    [wishlist],
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(
+      (plant) =>
+        plant.name.toLowerCase().includes(q) || plant.latinName.toLowerCase().includes(q),
+    );
+  }, [items, query]);
+
+  const hasFavorites = items.length > 0;
+  const hasFilterMiss = hasFavorites && filtered.length === 0 && query.trim().length > 0;
 
   return (
     <Screen>
@@ -35,7 +52,7 @@ export default function WishlistScreen() {
         </View>
       ) : null}
 
-      {items.length === 0 ? (
+      {!hasFavorites ? (
         <EmptyState
           title="Sin favoritos"
           description="Explora el catálogo y guarda las plantas que te enamoren."
@@ -45,36 +62,59 @@ export default function WishlistScreen() {
         />
       ) : (
         <>
-          <View className="mb-4">
-            <RizomaButton
-              label="Añadir todos al carrito"
-              onPress={() => {
-                const count = items.length;
-                items.forEach((plant) => addToCart(plant));
-                setToast(`${count} planta${count === 1 ? "" : "s"} añadida${count === 1 ? "" : "s"} al carrito`);
-                setTimeout(() => setToast(null), 2500);
-              }}
+          <View className="mb-2">
+            <LeafySearchBar
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Buscar en favoritos..."
             />
           </View>
-          <FlatList
-            data={items}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={{ gap: COLUMN_GAP }}
-            contentContainerStyle={{ gap: 4, paddingBottom: 24 }}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={{ width: columnWidth }}>
-                <PlantCard
-                  plant={item}
-                  variant="wishlist"
-                  wishlisted={isInWishlist(item.id)}
-                  onToggleWishlist={() => toggleWishlist(item)}
-                  onPress={() => router.push(`/plants/${item.id}`)}
+
+          {hasFilterMiss ? (
+            <EmptyState
+              title="Ninguna favorita con ese nombre"
+              description="Prueba otro término o limpia la búsqueda para ver todas tus favoritas."
+              actionLabel="Limpiar búsqueda"
+              onActionPress={() => setQuery("")}
+              icon={<Search size={24} color={emptyIconTone} />}
+            />
+          ) : (
+            <>
+              <View className="mb-4">
+                <RizomaButton
+                  label="Añadir todos al carrito"
+                  onPress={() => {
+                    const count = filtered.length;
+                    filtered.forEach((plant) => addToCart(plant));
+                    setToast(
+                      `${count} planta${count === 1 ? "" : "s"} añadida${count === 1 ? "" : "s"} al carrito`,
+                    );
+                    setTimeout(() => setToast(null), 2500);
+                  }}
                 />
               </View>
-            )}
-          />
+              <FlatList
+                data={filtered}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                columnWrapperStyle={{ gap: COLUMN_GAP }}
+                contentContainerStyle={{ gap: 4, paddingBottom: 24 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                renderItem={({ item }) => (
+                  <View style={{ width: columnWidth }}>
+                    <PlantCard
+                      plant={item}
+                      variant="wishlist"
+                      wishlisted={isInWishlist(item.id)}
+                      onToggleWishlist={() => toggleWishlist(item)}
+                      onPress={() => router.push(`/plants/${item.id}`)}
+                    />
+                  </View>
+                )}
+              />
+            </>
+          )}
         </>
       )}
     </Screen>

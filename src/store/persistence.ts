@@ -11,7 +11,12 @@ const ORDERS_KEY = "rizoma.orders.v1";
 const GARDEN_KEY = "rizoma.garden.v1";
 const ONBOARDING_KEY = "rizoma.onboarding.v1";
 const PROFILE_NAME_KEY = "rizoma.profileName.v1";
+const PROFILE_AVATAR_KEY = "rizoma.profileAvatar.v1";
 const CHAT_KEY = "@rizoma/chat-threads";
+
+/** Avatar por defecto (Unsplash) hasta que el usuario elija otro. */
+export const DEFAULT_PROFILE_AVATAR_URI =
+  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=240";
 
 /** Evita pantallas de carga eternas si AsyncStorage cuelga tras reiniciar el emulador. */
 export const STORAGE_LOAD_TIMEOUT_MS = 2500;
@@ -101,6 +106,18 @@ export async function loadProfileName(): Promise<string> {
 
 export async function saveProfileName(name: string) {
   await AsyncStorage.setItem(PROFILE_NAME_KEY, name);
+}
+
+export async function loadProfileAvatar(): Promise<string> {
+  try {
+    return (await AsyncStorage.getItem(PROFILE_AVATAR_KEY)) ?? DEFAULT_PROFILE_AVATAR_URI;
+  } catch {
+    return DEFAULT_PROFILE_AVATAR_URI;
+  }
+}
+
+export async function saveProfileAvatar(uri: string) {
+  await AsyncStorage.setItem(PROFILE_AVATAR_KEY, uri);
 }
 
 /** Returns null when there is no saved chat data (caller should seed). Empty threads = user cleared history. */

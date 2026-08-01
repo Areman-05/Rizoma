@@ -28,10 +28,15 @@ export function LeafySearchBar({
         placeholderTextColor={colors.grayText}
         className="ml-2 flex-1 text-base text-rizoma-black"
         style={{ fontFamily: "Inter_400Regular" }}
+        autoCorrect={false}
+        autoCapitalize="none"
+        returnKeyType="search"
       />
-      <Pressable onPress={onScanPress} accessibilityLabel="Escanear planta" hitSlop={8}>
-        <ScanLine size={20} color={colors.black} />
-      </Pressable>
+      {onScanPress ? (
+        <Pressable onPress={onScanPress} accessibilityLabel="Escanear planta" hitSlop={8}>
+          <ScanLine size={20} color={colors.black} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
