@@ -66,7 +66,7 @@ export default function WishlistScreen() {
         <>
           {hasFilterMiss ? (
             <>
-              <View style={{ marginBottom: SEARCH_TO_GRID_GAP }}>
+              <View style={{ marginTop: 20, marginBottom: SEARCH_TO_GRID_GAP }}>
                 <LeafySearchBar
                   value={query}
                   onChangeText={setQuery}
@@ -92,7 +92,14 @@ export default function WishlistScreen() {
               ListHeaderComponentStyle={{ marginBottom: SEARCH_TO_GRID_GAP }}
               ListHeaderComponent={
                 <View>
-                  <View className="mb-2">
+                  <View style={{ marginTop: 20 }}>
+                    <LeafySearchBar
+                      value={query}
+                      onChangeText={setQuery}
+                      placeholder="Buscar en favoritos..."
+                    />
+                  </View>
+                  <View className="mt-2">
                     <RizomaButton
                       label="Añadir todos al carrito"
                       onPress={() => {
@@ -105,11 +112,6 @@ export default function WishlistScreen() {
                       }}
                     />
                   </View>
-                  <LeafySearchBar
-                    value={query}
-                    onChangeText={setQuery}
-                    placeholder="Buscar en favoritos..."
-                  />
                 </View>
               }
               showsVerticalScrollIndicator={false}
