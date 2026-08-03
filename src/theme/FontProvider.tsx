@@ -13,6 +13,10 @@ import { BrandSplash } from "@/src/components/brand/BrandSplash";
 const BRAND_SPLASH_MS = 3800;
 const EXIT_FADE_MS = 500;
 
+/** Evita re-mostrar el splash en cada Fast Refresh / remount de RootLayout. */
+let brandSplashCompleted = false;
+let splashStartedAt: number | null = null;
+
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
@@ -27,21 +31,30 @@ export function FontProvider({ children }: { children: ReactNode }) {
     Inter_700Bold,
   });
 
-  const [phase, setPhase] = useState<"splash" | "app">("splash");
-  const opacity = useRef(new Animated.Value(1)).current;
+  const [phase, setPhase] = useState<"splash" | "app">(
+    brandSplashCompleted ? "app" : "splash",
+  );
+  const opacity = useRef(new Animated.Value(brandSplashCompleted ? 0 : 1)).current;
 
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
 
+    if (brandSplashCompleted) {
+      setPhase("app");
+      return;
+    }
+
+    if (splashStartedAt == null) splashStartedAt = Date.now();
+    const remaining = Math.max(0, BRAND_SPLASH_MS - (Date.now() - splashStartedAt));
+
     const timer = setTimeout(() => {
+      brandSplashCompleted = true;
       Animated.timing(opacity, {
         toValue: 0,
         duration: EXIT_FADE_MS,
         useNativeDriver: true,
-      }).start(({ finished }) => {
-        if (finished) setPhase("app");
-      });
-    }, BRAND_SPLASH_MS);
+      }).start(() => setPhase("app"));
+    }, remaining);
 
     return () => clearTimeout(timer);
   }, [opacity]);

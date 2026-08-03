@@ -49,9 +49,20 @@ Probar en **emulador Android / Expo Go** (mejor que web) y comparar con capturas
 
 El diseño se itera hasta alcanzar nivel Behance. Feedback visual bienvenido en cada tanda.
 
+## Google Sign-In (Expo Go)
+
+En Google Cloud Console → cliente OAuth **tipo Web**, añade estas Authorized redirect URIs:
+
+- `rizoma://`
+- `rizoma://oauthredirect`
+- El URI exacto que imprime Metro al abrir login en `__DEV__` (suele ser `exp://IP:puerto` o similar). Sin ese URI, Expo Go falla con `redirect_uri_mismatch`.
+
+Nunca guardes el `client_secret` en la app ni en el repo. Si se expuso, rótalo en la consola.
+
 ## Flujos recientes
 
 - Home scrollable con carrusel de promos y subtítulos de categoría
 - Checkout con pasos atrás, pedidos cancelables y envío calculado
 - Chat con timestamps e indicador “escribiendo…”
 - Jardín con barra de riego y skeleton de carga
+- Auth: Google Sign-In real (id_token) + sesión persistida; email/password sigue siendo mock

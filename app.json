@@ -11,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.rizoma.app",
       "adaptiveIcon": {
         "backgroundColor": "#1E3B2B",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -40,7 +41,8 @@
           "cameraPermission": false,
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-web-browser"
     ]
   }
 }

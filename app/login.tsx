@@ -1,5 +1,8 @@
+import * as AuthSession from "expo-auth-session";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   KeyboardAvoidingView,
@@ -12,16 +15,33 @@ import {
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
+import {
+  getGoogleAuthRequestConfig,
+  getGoogleRedirectUriOptions,
+} from "@/src/config/googleAuth";
+import { useAuth, userFromGoogleIdToken } from "@/src/context/AuthContext";
+import { saveProfileAvatar, saveProfileName } from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const handledResponseKey = useRef<string | null>(null);
 
   const formOpacity = useRef(new Animated.Value(0)).current;
   const formTranslate = useRef(new Animated.Value(12)).current;
+
+  const googleConfig = useMemo(() => getGoogleAuthRequestConfig(), []);
+  const redirectOptions = useMemo(() => getGoogleRedirectUriOptions(), []);
+  const [request, response, promptAsync] = Google.useAuthRequest(
+    googleConfig,
+    redirectOptions,
+  );
 
   useEffect(() => {
     Animated.parallel([
@@ -37,6 +57,89 @@ export default function LoginScreen() {
       }),
     ]).start();
   }, [formOpacity, formTranslate]);
+
+  useEffect(() => {
+    if (!__DEV__) return;
+    const redirectUri =
+      request?.redirectUri ??
+      AuthSession.makeRedirectUri({
+        scheme: "rizoma",
+        path: "oauthredirect",
+      });
+    console.log(
+      "[Rizoma Google Auth] Añade este redirect URI en Google Cloud Console (Web client → Authorized redirect URIs):",
+      redirectUri,
+    );
+    console.log(
+      "[Rizoma Google Auth] También autoriza: rizoma://  y  rizoma://oauthredirect",
+    );
+  }, [request?.redirectUri]);
+
+  useEffect(() => {
+    if (!response) return;
+
+    const responseKey =
+      response.type === "success"
+        ? `success:${response.params.id_token ?? response.params.code ?? ""}`
+        : response.type === "error"
+          ? `error:${response.errorCode ?? response.params.error ?? ""}`
+          : response.type;
+    if (handledResponseKey.current === responseKey) return;
+    handledResponseKey.current = responseKey;
+
+    const finish = () => setBusy(false);
+
+    if (response.type === "success") {
+      const idToken = response.params.id_token;
+      if (!idToken) {
+        setError(
+          "Google no devolvió un id_token. Revisa que el Web client tenga el redirect URI correcto.",
+        );
+        finish();
+        return;
+      }
+
+      try {
+        const user = userFromGoogleIdToken(idToken);
+        void (async () => {
+          try {
+            await signIn(user);
+            if (user.name) await saveProfileName(user.name);
+            if (user.picture) await saveProfileAvatar(user.picture);
+            router.replace("/(tabs)");
+          } catch {
+            setError("No se pudo guardar la sesión. Inténtalo de nuevo.");
+          } finally {
+            finish();
+          }
+        })();
+      } catch {
+        setError("No se pudo leer el perfil de Google. Inténtalo de nuevo.");
+        finish();
+      }
+      return;
+    }
+
+    if (response.type === "dismiss" || response.type === "cancel") {
+      setError("Inicio de sesión con Google cancelado.");
+      finish();
+      return;
+    }
+
+    if (response.type === "error") {
+      const detail =
+        response.error?.message ||
+        response.params.error_description ||
+        response.params.error ||
+        response.errorCode ||
+        "Error desconocido";
+      setError(`No se pudo iniciar sesión con Google: ${detail}`);
+      finish();
+      return;
+    }
+
+    finish();
+  }, [response, signIn]);
 
   const clearError = () => setError(null);
 
@@ -57,21 +160,40 @@ export default function LoginScreen() {
     }
     setBusy(true);
     setError(null);
-    // Mock auth: breve feedback y entrar.
-    setTimeout(() => {
-      setBusy(false);
-      enterApp();
-    }, 450);
+    const mockName = trimmed.split("@")[0] || "Usuario";
+    void (async () => {
+      try {
+        await signIn({
+          id: `email:${trimmed.toLowerCase()}`,
+          email: trimmed,
+          name: mockName,
+          provider: "email",
+        });
+        await saveProfileName(mockName);
+        enterApp();
+      } catch {
+        setError("No se pudo guardar la sesión. Inténtalo de nuevo.");
+      } finally {
+        setBusy(false);
+      }
+    })();
   };
 
-  const onGoogle = () => {
+  const onGoogle = async () => {
     if (busy) return;
+    if (!request) {
+      setError("Google Sign-In aún se está preparando. Espera un segundo.");
+      return;
+    }
     setBusy(true);
     setError(null);
-    setTimeout(() => {
+    try {
+      await promptAsync();
+      // El resultado se procesa en el effect de `response`.
+    } catch {
       setBusy(false);
-      enterApp();
-    }, 400);
+      setError("No se pudo abrir el flujo de Google. Inténtalo de nuevo.");
+    }
   };
 
   return (
@@ -192,17 +314,19 @@ export default function LoginScreen() {
 
             <Pressable
               onPress={onGoogle}
-              disabled={busy}
+              disabled={busy || !request}
               accessibilityRole="button"
               accessibilityLabel="Continuar con Google"
               className="items-center rounded-full border border-rizoma-border bg-white px-5 py-4"
-              style={({ pressed }) => ({ opacity: pressed || busy ? 0.75 : 1 })}
+              style={({ pressed }) => ({
+                opacity: pressed || busy || !request ? 0.75 : 1,
+              })}
             >
               <Text
                 className="text-base text-rizoma-black"
                 style={{ fontFamily: "Inter_600SemiBold" }}
               >
-                Continuar con Google
+                {busy ? "Conectando con Google..." : "Continuar con Google"}
               </Text>
             </Pressable>
           </View>
@@ -225,7 +349,7 @@ export default function LoginScreen() {
             style={{ fontFamily: "Inter_400Regular" }}
           >
             Al continuar aceptas los términos de la demo Rizoma.{"\n"}
-            No hay backend real: el acceso es simulado.
+            Google Sign-In es real; el acceso por email/contraseña es simulado.
           </Text>
         </Animated.View>
       </KeyboardAvoidingView>

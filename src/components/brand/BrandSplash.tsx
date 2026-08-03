@@ -98,9 +98,13 @@ export function BrandSplash({ animated = true }: BrandSplashProps) {
             opacity: titleOpacity,
             transform: [{ translateY: titleY }],
             alignItems: "center",
+            width: "100%",
+            paddingHorizontal: 8,
           }}
         >
-          <Text style={styles.wordmark}>{brand.name}</Text>
+          <Text style={styles.wordmark} numberOfLines={1} allowFontScaling={false}>
+            Rizoma
+          </Text>
         </Animated.View>
 
         <Animated.View style={[styles.line, { width: lineWidth }]} />
@@ -118,7 +122,6 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     backgroundColor: "#FFFFFF",
-    overflow: "hidden",
   },
   guides: {
     ...StyleSheet.absoluteFillObject,
@@ -136,15 +139,17 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 32,
+    paddingHorizontal: 24,
     zIndex: 2,
   },
   wordmark: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 52,
+    fontWeight: "600",
     color: leafyLogoColors.wordmark,
-    letterSpacing: -1,
+    letterSpacing: -0.4,
     textAlign: "center",
+    includeFontPadding: false,
   },
   line: {
     marginTop: 20,

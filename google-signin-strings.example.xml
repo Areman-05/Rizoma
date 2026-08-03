@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tras prebuild: android/app/src/main/res/values/strings.xml -->
+<resources>
+  <string name="app_name">Rizoma</string>
+  <string name="default_web_client_id">298341869130-u2slof1pffpm9i02htkfstcogkb83ro8.apps.googleusercontent.com</string>
+</resources>

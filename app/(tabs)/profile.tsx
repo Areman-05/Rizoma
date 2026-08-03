@@ -39,6 +39,7 @@ import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
+import { useAuth } from "@/src/context/AuthContext";
 import { useShop } from "@/src/store/ShopContext";
 import { useGarden } from "@/src/store/GardenContext";
 import {
@@ -386,6 +387,7 @@ function EditProfileSheet({
 }
 
 export default function ProfileScreen() {
+  const { user, signOut } = useAuth();
   const { cartCount, wishlist, orders } = useShop();
   const { garden } = useGarden();
   const [name, setName] = useState("Amante de plantas");
@@ -399,6 +401,12 @@ export default function ProfileScreen() {
     loadProfileName().then(setName);
     loadProfileAvatar().then(setAvatarUri);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.name) setName(user.name);
+    if (user.picture) setAvatarUri(user.picture);
+  }, [user]);
 
   useEffect(() => {
     Animated.parallel([
@@ -429,7 +437,11 @@ export default function ProfileScreen() {
       onPress: () => setEditSheetOpen(true),
     },
     { href: "/notification-settings", label: "Notificaciones", icon: Bell },
-    { href: "/login", label: "Cuenta / Login", icon: User },
+    {
+      href: "/login",
+      label: user ? "Cambiar cuenta" : "Cuenta / Login",
+      icon: User,
+    },
   ];
 
   const collectionRows: ProfileRow[] = [
@@ -450,17 +462,30 @@ export default function ProfileScreen() {
       icon: LogOut,
       danger: true,
       onPress: () => {
-        Alert.alert("Cerrar sesión", "Esto es una demo: no hay sesión real que cerrar.", [
+        if (!user) {
+          router.push("/login");
+          return;
+        }
+        Alert.alert("Cerrar sesión", "¿Seguro que quieres salir de tu cuenta?", [
           { text: "Cancelar", style: "cancel" },
           {
-            text: "Ir a login",
+            text: "Cerrar sesión",
             style: "destructive",
-            onPress: () => router.push("/login"),
+            onPress: () => {
+              void (async () => {
+                await signOut();
+                router.replace("/login");
+              })();
+            },
           },
         ]);
       },
     },
   ];
+
+  const displayName = user?.name || name;
+  const displayEmail = user?.email;
+  const displayAvatar = user?.picture || avatarUri;
 
   return (
     <Screen scroll>
@@ -474,7 +499,7 @@ export default function ProfileScreen() {
 
         <View className="mb-6 items-center rounded-3xl bg-rizoma-brandSoft px-5 py-7">
           <ProfileAvatar
-            value={avatarUri}
+            value={displayAvatar}
             size={96}
             borderWidth={2}
             borderColor={colors.white}
@@ -483,8 +508,26 @@ export default function ProfileScreen() {
 
           <View className="mt-4 w-full items-center">
             <Text className="text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-              {name}
+              {displayName}
             </Text>
+
+            {displayEmail ? (
+              <Text
+                className="mt-1 text-sm text-rizoma-secondaryText"
+                style={{ fontFamily: "Inter_400Regular" }}
+              >
+                {displayEmail}
+              </Text>
+            ) : null}
+
+            {user?.provider === "google" ? (
+              <Text
+                className="mt-1 text-xs text-rizoma-brand"
+                style={{ fontFamily: "Inter_500Medium" }}
+              >
+                Conectado con Google
+              </Text>
+            ) : null}
 
             {PROFILE_LOCATION ? (
               <View className="mt-2 flex-row items-center gap-1">

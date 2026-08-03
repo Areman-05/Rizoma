@@ -34,16 +34,18 @@ export function getAvatarPreset(id: string): AvatarPreset | undefined {
   return AVATAR_PRESETS.find((preset) => preset.id === id);
 }
 
-/** Normaliza valores guardados antiguos (DiceBear / Unsplash) a un preset local. */
+/** Normaliza valores guardados. Presets locales, URIs de galería y fotos remotas (p. ej. Google). */
 export function normalizeAvatarValue(value: string | null | undefined): string {
   if (!value) return DEFAULT_AVATAR_PRESET_ID;
   if (isAvatarPresetId(value) && getAvatarPreset(value)) return value;
-  if (value.startsWith("file:") || value.startsWith("content:") || value.startsWith("ph://")) {
+  if (
+    value.startsWith("file:") ||
+    value.startsWith("content:") ||
+    value.startsWith("ph://") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
     return value;
-  }
-  // URLs remotas (DiceBear, Unsplash, etc.) → preset por defecto fiable
-  if (value.startsWith("http://") || value.startsWith("https://")) {
-    return DEFAULT_AVATAR_PRESET_ID;
   }
   return DEFAULT_AVATAR_PRESET_ID;
 }

@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "@/src/polyfills/colorScheme";
+import { AuthProvider } from "@/src/context/AuthContext";
 import { FontProvider } from "@/src/theme/FontProvider";
 import { ShopProvider } from "@/src/store/ShopContext";
 import { GardenProvider } from "@/src/store/GardenContext";
@@ -37,32 +38,34 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   return (
     <FontProvider>
-      <ShopProvider>
-        <GardenProvider>
-          <ChatProvider>
-            <OnboardingProvider>
-              <StatusBar style="dark" />
-              <OnboardingGate>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="plants/[id]" />
-                  <Stack.Screen name="scan" />
-                  <Stack.Screen name="checkout" />
-                  <Stack.Screen name="orders" />
-                  <Stack.Screen name="search" />
-                  <Stack.Screen name="onboarding" />
-                  <Stack.Screen name="login" />
-                  <Stack.Screen name="match" />
-                  <Stack.Screen name="garden" />
-                  <Stack.Screen name="notifications" />
-                  <Stack.Screen name="notification-settings" />
-                  <Stack.Screen name="chat/[id]" />
-                </Stack>
-              </OnboardingGate>
-            </OnboardingProvider>
-          </ChatProvider>
-        </GardenProvider>
-      </ShopProvider>
+      <AuthProvider>
+        <ShopProvider>
+          <GardenProvider>
+            <ChatProvider>
+              <OnboardingProvider>
+                <StatusBar style="dark" />
+                <OnboardingGate>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="plants/[id]" />
+                    <Stack.Screen name="scan" />
+                    <Stack.Screen name="checkout" />
+                    <Stack.Screen name="orders" />
+                    <Stack.Screen name="search" />
+                    <Stack.Screen name="onboarding" />
+                    <Stack.Screen name="login" />
+                    <Stack.Screen name="match" />
+                    <Stack.Screen name="garden" />
+                    <Stack.Screen name="notifications" />
+                    <Stack.Screen name="notification-settings" />
+                    <Stack.Screen name="chat/[id]" />
+                  </Stack>
+                </OnboardingGate>
+              </OnboardingProvider>
+            </ChatProvider>
+          </GardenProvider>
+        </ShopProvider>
+      </AuthProvider>
     </FontProvider>
   );
 }
