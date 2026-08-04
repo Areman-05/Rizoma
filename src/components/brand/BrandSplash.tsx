@@ -10,14 +10,16 @@ interface BrandSplashProps {
 }
 
 /**
- * Splash botánica: tierra → raíz → hoja → wordmark → tagline.
+ * Splash botánica premium: atmósfera → raíces → medallón/hojas → wordmark.
  */
 export function BrandSplash({ animated = true }: BrandSplashProps) {
   const markOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
-  const markScale = useRef(new Animated.Value(animated ? 0.72 : 1)).current;
+  const markScale = useRef(new Animated.Value(animated ? 0.82 : 1)).current;
+  const ringScale = useRef(new Animated.Value(animated ? 0.88 : 1)).current;
+  const ringOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
   const titleOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
-  const titleY = useRef(new Animated.Value(animated ? 14 : 0)).current;
-  const lineWidth = useRef(new Animated.Value(animated ? 0 : 44)).current;
+  const titleY = useRef(new Animated.Value(animated ? 12 : 0)).current;
+  const lineWidth = useRef(new Animated.Value(animated ? 0 : 48)).current;
   const tagOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
   const tagY = useRef(new Animated.Value(animated ? 8 : 0)).current;
 
@@ -26,33 +28,44 @@ export function BrandSplash({ animated = true }: BrandSplashProps) {
 
     const ease = Easing.bezier(0.22, 1, 0.36, 1);
 
-    // Mark aparece tras tierra + raíces (~1.5s)
     Animated.sequence([
-      Animated.delay(1450),
+      Animated.delay(980),
       Animated.parallel([
+        Animated.timing(ringOpacity, {
+          toValue: 1,
+          duration: 700,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+        Animated.spring(ringScale, {
+          toValue: 1,
+          friction: 8,
+          tension: 52,
+          useNativeDriver: true,
+        }),
         Animated.timing(markOpacity, {
           toValue: 1,
-          duration: 900,
+          duration: 780,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.spring(markScale, {
           toValue: 1,
           friction: 7,
-          tension: 58,
+          tension: 56,
           useNativeDriver: true,
         }),
       ]),
       Animated.parallel([
         Animated.timing(titleOpacity, {
           toValue: 1,
-          duration: 780,
+          duration: 720,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.timing(titleY, {
           toValue: 0,
-          duration: 780,
+          duration: 720,
           easing: ease,
           useNativeDriver: true,
         }),
@@ -60,13 +73,13 @@ export function BrandSplash({ animated = true }: BrandSplashProps) {
       Animated.parallel([
         Animated.timing(tagOpacity, {
           toValue: 1,
-          duration: 700,
+          duration: 640,
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(tagY, {
           toValue: 0,
-          duration: 700,
+          duration: 640,
           easing: ease,
           useNativeDriver: true,
         }),
@@ -74,17 +87,34 @@ export function BrandSplash({ animated = true }: BrandSplashProps) {
     ]).start();
 
     Animated.timing(lineWidth, {
-      toValue: 44,
-      duration: 900,
-      delay: 2900,
+      toValue: 48,
+      duration: 820,
+      delay: 2500,
       easing: ease,
       useNativeDriver: false,
     }).start();
-  }, [animated, markOpacity, markScale, titleOpacity, titleY, lineWidth, tagOpacity, tagY]);
+  }, [
+    animated,
+    markOpacity,
+    markScale,
+    ringScale,
+    ringOpacity,
+    titleOpacity,
+    titleY,
+    lineWidth,
+    tagOpacity,
+    tagY,
+  ]);
 
   return (
     <View style={styles.root} accessibilityLabel="Cargando Rizoma">
-      <RizomaSplashArt animated={animated} markOpacity={markOpacity} markScale={markScale} />
+      <RizomaSplashArt
+        animated={animated}
+        markOpacity={markOpacity}
+        markScale={markScale}
+        ringScale={ringScale}
+        ringOpacity={ringOpacity}
+      />
 
       <View style={styles.copyBlock} pointerEvents="none">
         <Animated.View
@@ -106,7 +136,7 @@ export function BrandSplash({ animated = true }: BrandSplashProps) {
           style={{
             opacity: tagOpacity,
             transform: [{ translateY: tagY }],
-            marginTop: 16,
+            marginTop: 14,
           }}
         >
           <Text style={styles.tagline}>{brand.tagline}</Text>
@@ -124,25 +154,25 @@ const styles = StyleSheet.create({
   },
   copyBlock: {
     position: "absolute",
-    left: 24,
-    right: 24,
-    bottom: "18%",
+    left: 28,
+    right: 28,
+    bottom: "14%",
     alignItems: "center",
-    zIndex: 3,
+    zIndex: 4,
   },
   wordmark: {
     fontFamily: "Inter_600SemiBold",
-    fontSize: 48,
+    fontSize: 46,
     fontWeight: "600",
     color: leafyLogoColors.wordmark,
-    letterSpacing: -0.5,
+    letterSpacing: -0.6,
     textAlign: "center",
     includeFontPadding: false,
   },
   line: {
-    marginTop: 16,
-    height: 2,
-    borderRadius: 1,
+    marginTop: 14,
+    height: 2.5,
+    borderRadius: 2,
     backgroundColor: leafyLogoColors.leaf,
     alignSelf: "center",
   },
@@ -152,6 +182,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: colors.secondaryText,
     textAlign: "center",
-    maxWidth: 280,
+    maxWidth: 270,
   },
 });
