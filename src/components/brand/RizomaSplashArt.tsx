@@ -4,7 +4,6 @@ import Svg, {
   Circle,
   Defs,
   Ellipse,
-  LinearGradient as SvgGradient,
   Path,
   RadialGradient,
   Stop,
@@ -23,7 +22,7 @@ interface RizomaSplashArtProps {
 }
 
 /**
- * Escena editorial: atmósfera + medallón + rizoma orgánico (silueta, no palos) + hojas.
+ * Escena botánica premium: atmósfera, motas, hojas fantasma, rizoma y mark.
  */
 export function RizomaSplashArt({
   animated = true,
@@ -33,12 +32,15 @@ export function RizomaSplashArt({
   ringOpacity,
 }: RizomaSplashArtProps) {
   const atmosphere = useRef(new Animated.Value(animated ? 0 : 1)).current;
+  const motes = useRef(new Animated.Value(animated ? 0 : 1)).current;
+  const ghosts = useRef(new Animated.Value(animated ? 0 : 0.35)).current;
   const soilOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
   const rootOpacity = useRef(new Animated.Value(animated ? 0 : 1)).current;
-  const rootScale = useRef(new Animated.Value(animated ? 0.72 : 1)).current;
+  const rootScale = useRef(new Animated.Value(animated ? 0.78 : 1)).current;
   const leafBack = useRef(new Animated.Value(animated ? 0 : 1)).current;
   const leafFront = useRef(new Animated.Value(animated ? 0 : 1)).current;
   const vein = useRef(new Animated.Value(animated ? 0 : 1)).current;
+  const floatY = useRef(new Animated.Value(0)).current;
 
   const ease = useMemo(() => Easing.bezier(0.22, 1, 0.36, 1), []);
 
@@ -46,72 +48,114 @@ export function RizomaSplashArt({
     if (!animated) return;
 
     Animated.sequence([
-      Animated.timing(atmosphere, {
-        toValue: 1,
-        duration: 700,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
+      Animated.parallel([
+        Animated.timing(atmosphere, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ghosts, {
+          toValue: 0.38,
+          duration: 1100,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(motes, {
+          toValue: 1,
+          duration: 1200,
+          delay: 200,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+      ]),
       Animated.parallel([
         Animated.timing(soilOpacity, {
           toValue: 1,
-          duration: 520,
+          duration: 560,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.timing(rootOpacity, {
           toValue: 1,
-          duration: 780,
+          duration: 820,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.spring(rootScale, {
           toValue: 1,
-          friction: 7,
-          tension: 48,
+          friction: 8,
+          tension: 46,
           useNativeDriver: true,
         }),
       ]),
       Animated.parallel([
         Animated.timing(leafBack, {
           toValue: 1,
-          duration: 520,
+          duration: 540,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.timing(leafFront, {
           toValue: 1,
-          duration: 620,
-          delay: 80,
+          duration: 640,
+          delay: 70,
           easing: ease,
           useNativeDriver: true,
         }),
         Animated.timing(vein, {
           toValue: 1,
-          duration: 500,
-          delay: 220,
+          duration: 520,
+          delay: 200,
           easing: ease,
           useNativeDriver: true,
         }),
       ]),
-    ]).start();
+    ]).start(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(floatY, {
+            toValue: -4,
+            duration: 1600,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(floatY, {
+            toValue: 0,
+            duration: 1600,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    });
   }, [
     animated,
     ease,
     atmosphere,
+    motes,
+    ghosts,
     soilOpacity,
     rootOpacity,
     rootScale,
     leafBack,
     leafFront,
     vein,
+    floatY,
   ]);
 
   return (
     <View style={styles.scene} pointerEvents="none">
       <LinearGradient
-        colors={["#D8F5E6", colors.brandSoft, colors.mintMid, "#FBFFFD"]}
-        locations={[0, 0.28, 0.62, 1]}
+        colors={["#CFF0DC", colors.brandSoft, colors.mintMid, colors.mintWash, "#FAFFFC"]}
+        locations={[0, 0.22, 0.48, 0.72, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      {/* Vignette suave para profundidad */}
+      <LinearGradient
+        colors={["rgba(13,61,42,0.06)", "transparent", "transparent", "rgba(13,61,42,0.04)"]}
+        locations={[0, 0.22, 0.75, 1]}
         style={StyleSheet.absoluteFill}
       />
 
@@ -119,6 +163,70 @@ export function RizomaSplashArt({
         <View style={[styles.orb, styles.orbTop]} />
         <View style={[styles.orb, styles.orbLeft]} />
         <View style={[styles.orb, styles.orbRight]} />
+        <View style={[styles.orb, styles.orbBottom]} />
+      </Animated.View>
+
+      {/* Hojas fantasma de fondo (armonía con el isotipo) */}
+      <Animated.View style={[styles.ghostLayer, { opacity: ghosts }]}>
+        <Svg width="100%" height="100%" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
+          <Path
+            d="M52 210c28 22 38 54 28 82-8 22-28 32-32 32-2 0-4-1-4-4 0-32 18-64 8-110z"
+            fill={colors.leafDeep}
+            opacity={0.07}
+          />
+          <Path
+            d="M48 200c-26 24-34 56-22 84 8 22 28 32 34 32 2 0 4-1 4-4 0-32-18-64-8-110z"
+            fill={colors.brand}
+            opacity={0.09}
+          />
+          <Path
+            d="M330 260c-30 24-40 58-28 88 8 24 30 34 34 34 2 0 4-1 4-4 0-34-18-66-10-118z"
+            fill={colors.leafDeep}
+            opacity={0.08}
+          />
+          <Path
+            d="M336 248c28 26 36 60 22 90-8 24-28 34-34 34-2 0-4-1-4-4 0-34 18-66 10-118z"
+            fill={colors.brand}
+            opacity={0.1}
+          />
+          <Path
+            d="M70 620c22 18 30 44 22 66-6 18-22 26-26 26-2 0-3-1-3-3 0-26 14-52 6-88z"
+            fill={colors.brand}
+            opacity={0.07}
+          />
+          <Path
+            d="M320 640c-24 18-32 46-22 70 6 18 24 28 28 28 2 0 3-1 3-3 0-28-14-54-6-94z"
+            fill={colors.leafDeep}
+            opacity={0.07}
+          />
+        </Svg>
+      </Animated.View>
+
+      {/* Motas / polen */}
+      <Animated.View style={[styles.motes, { opacity: motes }]}>
+        <Svg width="100%" height="100%" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
+          {[
+            [64, 180, 2.2],
+            [110, 240, 1.6],
+            [300, 200, 2],
+            [340, 280, 1.4],
+            [48, 480, 1.8],
+            [86, 540, 1.3],
+            [310, 520, 1.7],
+            [350, 460, 1.5],
+            [180, 160, 1.2],
+            [220, 700, 1.6],
+          ].map(([cx, cy, r], i) => (
+            <Circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={r}
+              fill={i % 2 === 0 ? colors.brand : colors.leafDeep}
+              opacity={0.22}
+            />
+          ))}
+        </Svg>
       </Animated.View>
 
       <View style={styles.stage}>
@@ -129,40 +237,45 @@ export function RizomaSplashArt({
             ...styles.ringWrap,
           }}
         >
-          <Svg width={220} height={220} viewBox="0 0 220 220">
+          <Svg width={260} height={260} viewBox="0 0 260 260">
             <Defs>
-              <RadialGradient id="halo" cx="50%" cy="45%" r="50%">
-                <Stop offset="0%" stopColor={colors.brand} stopOpacity="0.22" />
-                <Stop offset="70%" stopColor={colors.brand} stopOpacity="0.06" />
+              <RadialGradient id="halo" cx="50%" cy="46%" r="50%">
+                <Stop offset="0%" stopColor={colors.brand} stopOpacity="0.2" />
+                <Stop offset="45%" stopColor={colors.brand} stopOpacity="0.08" />
                 <Stop offset="100%" stopColor={colors.brand} stopOpacity="0" />
               </RadialGradient>
-              <SvgGradient id="ringStroke" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0%" stopColor={colors.brand} stopOpacity="0.55" />
-                <Stop offset="100%" stopColor={colors.leafDeep} stopOpacity="0.2" />
-              </SvgGradient>
             </Defs>
-            <Circle cx={110} cy={110} r={98} fill="url(#halo)" />
+            <Circle cx={130} cy={130} r={118} fill="url(#halo)" />
+            {/* Anillo editorial sutil (sin relleno blanco) */}
             <Circle
-              cx={110}
-              cy={110}
-              r={78}
-              fill={colors.white}
-              fillOpacity={0.55}
-              stroke="url(#ringStroke)"
-              strokeWidth={1.5}
+              cx={130}
+              cy={130}
+              r={92}
+              fill="none"
+              stroke={colors.brand}
+              strokeOpacity={0.14}
+              strokeWidth={1}
             />
-            <Circle cx={110} cy={110} r={68} fill={colors.white} fillOpacity={0.72} />
+            <Circle
+              cx={130}
+              cy={130}
+              r={78}
+              fill="none"
+              stroke={colors.leafDeep}
+              strokeOpacity={0.08}
+              strokeWidth={1}
+            />
           </Svg>
         </Animated.View>
 
         <Animated.View
           style={{
             opacity: markOpacity,
-            transform: [{ scale: markScale }],
+            transform: [{ scale: markScale }, { translateY: floatY }],
             zIndex: 3,
           }}
         >
-          <Svg width={120} height={120} viewBox="0 0 64 64">
+          <Svg width={124} height={124} viewBox="0 0 64 64">
             <AnimatedPath
               d="M38 8c12 10 16 24 12 36-3.5 10-12 14-14 14-1 0-2-.5-2-2 0-14 8-28 4-48z"
               fill={colors.leafDeep}
@@ -175,7 +288,7 @@ export function RizomaSplashArt({
             />
             <AnimatedPath
               d="M26 18c-2 8-2 16 0 24"
-              stroke="rgba(255,255,255,0.4)"
+              stroke="rgba(255,255,255,0.42)"
               strokeWidth="2"
               strokeLinecap="round"
               fill="none"
@@ -184,98 +297,74 @@ export function RizomaSplashArt({
           </Svg>
         </Animated.View>
 
-        <Animated.View style={{ opacity: soilOpacity, marginTop: -2, zIndex: 2 }}>
-          <Svg width={210} height={96} viewBox="0 0 210 96">
-            <Ellipse cx={105} cy={16} rx={72} ry={11} fill={colors.leafDeep} opacity={0.08} />
+        <Animated.View style={{ opacity: soilOpacity, marginTop: 2, zIndex: 2 }}>
+          <Svg width={240} height={40} viewBox="0 0 240 40">
+            <Ellipse cx={120} cy={14} rx={88} ry={10} fill={colors.leafDeep} opacity={0.06} />
             <Path
-              d="M38 16 C72 6 138 6 172 16 C158 28 128 34 105 34 C82 34 52 28 38 16Z"
+              d="M28 12 C70 2 170 2 212 12 C194 24 156 30 120 30 C84 30 46 24 28 12Z"
               fill={colors.leafDeep}
-              opacity={0.26}
+              opacity={0.22}
             />
             <Path
-              d="M54 14 C78 8 132 8 156 14 C146 23 124 27 105 27 C86 27 64 23 54 14Z"
+              d="M48 10 C82 3 158 3 192 10 C176 20 148 24 120 24 C92 24 64 20 48 10Z"
               fill={colors.wordmark}
-              opacity={0.2}
+              opacity={0.16}
+            />
+            {/* Brillo de tierra */}
+            <Path
+              d="M70 11 C100 6 140 6 170 11"
+              stroke={colors.brand}
+              strokeOpacity={0.25}
+              strokeWidth={1.2}
+              strokeLinecap="round"
+              fill="none"
             />
           </Svg>
         </Animated.View>
 
-        {/* Rizoma orgánico tipo logo botánico: silueta con curvas, no 3 palos */}
         <Animated.View
           style={{
             opacity: rootOpacity,
-            transform: [{ scaleY: rootScale }, { translateY: -6 }],
+            transform: [{ scaleY: rootScale }, { translateY: -10 }],
             zIndex: 1,
-            marginTop: -78,
+            marginTop: -8,
           }}
         >
-          <Svg width={210} height={96} viewBox="0 0 210 96">
-            {/* Cuerpo central del rizoma */}
+          <Svg width={240} height={88} viewBox="0 0 240 88">
             <Path
-              d="M105 30
-                 C102 42 100 54 101 68
-                 C103 78 106 86 105 92
-                 C104 86 107 78 109 68
-                 C110 54 108 42 105 30Z"
+              d="M120 8 C116 22 114 36 116 52 C118 64 122 74 120 82 C118 74 122 64 124 52 C126 36 124 22 120 8Z"
               fill={colors.leafDeep}
-              opacity={0.38}
-            />
-            {/* Rama izquierda gruesa */}
-            <Path
-              d="M104 36
-                 C92 40 78 48 66 60
-                 C58 68 50 78 44 88
-                 C52 82 62 74 72 66
-                 C84 54 96 44 104 40Z"
-              fill={colors.leafDeep}
-              opacity={0.32}
-            />
-            {/* Rama derecha gruesa */}
-            <Path
-              d="M106 36
-                 C118 40 132 48 144 60
-                 C152 68 160 78 166 88
-                 C158 82 148 74 138 66
-                 C126 54 114 44 106 40Z"
-              fill={colors.leafDeep}
-              opacity={0.32}
-            />
-            {/* Bifurcaciones finas (estilo fibrous root logo) */}
-            <Path
-              d="M72 58 C60 62 48 70 40 80 C48 76 58 70 68 64Z"
-              fill={colors.leafDeep}
-              opacity={0.22}
+              opacity={0.34}
             />
             <Path
-              d="M138 58 C150 62 162 70 170 80 C162 76 152 70 142 64Z"
+              d="M118 14 C100 20 82 30 66 44 C54 54 44 66 36 78 C48 70 62 60 76 50 C94 36 110 22 118 18Z"
               fill={colors.leafDeep}
-              opacity={0.22}
+              opacity={0.28}
             />
             <Path
-              d="M98 52 C88 58 82 70 78 82 C86 74 94 64 100 56Z"
+              d="M122 14 C140 20 158 30 174 44 C186 54 196 66 204 78 C192 70 178 60 164 50 C146 36 130 22 122 18Z"
               fill={colors.leafDeep}
-              opacity={0.2}
+              opacity={0.28}
             />
             <Path
-              d="M112 52 C122 58 128 70 132 82 C124 74 116 64 110 56Z"
-              fill={colors.leafDeep}
-              opacity={0.2}
-            />
-            {/* Puntas orgánicas */}
-            <Path
-              d="M44 86 C38 90 34 94 32 96 C38 94 44 90 48 88Z"
+              d="M78 40 C62 46 48 56 38 68 C50 62 64 54 76 46Z"
               fill={colors.leafDeep}
               opacity={0.18}
             />
             <Path
-              d="M166 86 C172 90 176 94 178 96 C172 94 166 90 162 88Z"
+              d="M162 40 C178 46 192 56 202 68 C190 62 176 54 164 46Z"
               fill={colors.leafDeep}
               opacity={0.18}
             />
             <Path
-              d="M105 88 C102 92 101 95 100 96 C104 95 106 92 105 88Z"
+              d="M110 28 C98 36 90 50 84 64 C94 54 104 42 112 32Z"
               fill={colors.leafDeep}
-              opacity={0.2}
+              opacity={0.16}
+            />
+            <Path
+              d="M130 28 C142 36 150 50 156 64 C146 54 136 42 128 32Z"
+              fill={colors.leafDeep}
+              opacity={0.16}
             />
           </Svg>
         </Animated.View>
@@ -292,43 +381,57 @@ const styles = StyleSheet.create({
   atmosphere: {
     ...StyleSheet.absoluteFill,
   },
+  ghostLayer: {
+    ...StyleSheet.absoluteFill,
+  },
+  motes: {
+    ...StyleSheet.absoluteFill,
+  },
   orb: {
     position: "absolute",
     borderRadius: 999,
     backgroundColor: colors.brand,
   },
   orbTop: {
-    top: -40,
-    alignSelf: "center",
-    left: "22%",
-    width: 220,
-    height: 220,
-    opacity: 0.1,
+    top: -60,
+    left: "18%",
+    width: 260,
+    height: 260,
+    opacity: 0.11,
   },
   orbLeft: {
-    top: "42%",
-    left: -70,
-    width: 160,
-    height: 160,
+    top: "38%",
+    left: -90,
+    width: 190,
+    height: 190,
     opacity: 0.07,
   },
   orbRight: {
-    top: "34%",
-    right: -50,
-    width: 140,
-    height: 140,
+    top: "28%",
+    right: -70,
+    width: 170,
+    height: 170,
     backgroundColor: colors.leafDeep,
     opacity: 0.06,
+  },
+  orbBottom: {
+    bottom: "8%",
+    alignSelf: "center",
+    left: "30%",
+    width: 180,
+    height: 180,
+    opacity: 0.05,
   },
   stage: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingBottom: 100,
+    // Deja aire abajo para el wordmark «Rizoma» (no se solapa)
+    paddingBottom: 168,
   },
   ringWrap: {
     position: "absolute",
-    top: "50%",
-    marginTop: -150,
+    top: "46%",
+    marginTop: -168,
   },
 });
