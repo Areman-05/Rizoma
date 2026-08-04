@@ -13,7 +13,7 @@ import { MapPin, Bell } from "lucide-react-native";
 import { plants } from "@/src/data/plants";
 import { plantCategories } from "@/src/data/categories";
 import { shopCategories, ShopCategoryId } from "@/src/data/shopCategories";
-import { PlantCard } from "@/src/components/catalog/PlantCard";
+import { PlantCard, HORIZONTAL_PLANT_CARD_WIDTH } from "@/src/components/catalog/PlantCard";
 import { ProfileAvatar } from "@/src/components/profile/ProfileAvatar";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { FilterChip } from "@/src/components/ui/FilterChip";
@@ -408,9 +408,10 @@ export default function HomeScreen() {
           className="mt-1"
         >
           {recommended.map((item) => (
-            <View key={item.id} style={{ width: 168 }}>
+            <View key={item.id} style={{ width: HORIZONTAL_PLANT_CARD_WIDTH }}>
               <PlantCard
                 plant={item}
+                horizontal
                 wishlisted={isInWishlist(item.id)}
                 onToggleWishlist={() => toggleWishlist(item)}
                 onPress={() => router.push(`/plants/${item.id}`)}

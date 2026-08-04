@@ -1,16 +1,26 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plant } from "@/src/types/catalog";
 import { GardenPlant } from "@/src/types/garden";
-import { loadGarden, saveGarden, withStorageTimeout } from "@/src/store/persistence";
+import { loadGarden, saveGarden, STORAGE_LOAD_TIMEOUT_MS } from "@/src/store/persistence";
 
 export type { GardenPlant };
 
 interface GardenContextValue {
   garden: GardenPlant[];
   hydrated: boolean;
-  addToGarden: (plant: Plant, nickname?: string) => void;
+  /** `true` si se añadió; `false` si ya estaba. */
+  addToGarden: (plant: Plant, nickname?: string) => boolean;
   removeFromGarden: (plantId: string) => void;
   markWatered: (plantId: string) => void;
+  isInGarden: (plantId: string) => boolean;
 }
 
 const GardenContext = createContext<GardenContextValue | null>(null);
@@ -18,50 +28,68 @@ const GardenContext = createContext<GardenContextValue | null>(null);
 export function GardenProvider({ children }: { children: ReactNode }) {
   const [garden, setGarden] = useState<GardenPlant[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [canPersist, setCanPersist] = useState(false);
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
-    withStorageTimeout(loadGarden(), [] as GardenPlant[])
+    const uiTimer = setTimeout(() => {
+      if (!cancelled) setHydrated(true);
+    }, STORAGE_LOAD_TIMEOUT_MS);
+
+    loadGarden()
       .then((saved) => {
         if (cancelled) return;
-        setGarden(saved);
+        if (!dirtyRef.current) setGarden(saved);
+        setCanPersist(true);
+        setHydrated(true);
       })
       .catch(() => {
-        /* seed vacío vía estado inicial */
+        if (cancelled) return;
+        setCanPersist(true);
+        setHydrated(true);
       })
       .finally(() => {
-        if (!cancelled) setHydrated(true);
+        clearTimeout(uiTimer);
       });
+
     return () => {
       cancelled = true;
+      clearTimeout(uiTimer);
     };
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!canPersist) return;
     void saveGarden(garden);
-  }, [garden, hydrated]);
+  }, [garden, canPersist]);
 
   const value = useMemo<GardenContextValue>(
     () => ({
       garden,
       hydrated,
       addToGarden: (plant, nickname) => {
+        if (garden.some((item) => item.plant.id === plant.id)) return false;
+        dirtyRef.current = true;
         setGarden((prev) => {
           if (prev.some((item) => item.plant.id === plant.id)) return prev;
           return [...prev, { plant, nickname, wateredAt: new Date().toISOString() }];
         });
+        return true;
       },
       removeFromGarden: (plantId) => {
+        dirtyRef.current = true;
         setGarden((prev) => prev.filter((item) => item.plant.id !== plantId));
       },
       markWatered: (plantId) => {
+        dirtyRef.current = true;
         setGarden((prev) =>
           prev.map((item) =>
             item.plant.id === plantId ? { ...item, wateredAt: new Date().toISOString() } : item,
           ),
         );
       },
+      isInGarden: (plantId) => garden.some((item) => item.plant.id === plantId),
     }),
     [garden, hydrated],
   );

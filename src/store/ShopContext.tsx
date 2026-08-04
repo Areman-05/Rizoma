@@ -1,4 +1,12 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Plant } from "@/src/types/catalog";
 import { normalizeOrderStatus, Order } from "@/src/types/orders";
 import {
@@ -7,7 +15,7 @@ import {
   saveCart,
   saveOrders,
   saveWishlist,
-  withStorageTimeout,
+  STORAGE_LOAD_TIMEOUT_MS,
 } from "@/src/store/persistence";
 import { getPlantById } from "@/src/data/plants";
 
@@ -45,49 +53,60 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [wishlist, setWishlist] = useState<Plant[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [canPersist, setCanPersist] = useState(false);
+  const dirtyRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
-    withStorageTimeout(Promise.all([loadShopState(), loadOrders()]), [
-      { cart: [] as CartLine[], wishlist: [] as Plant[] },
-      [] as Order[],
-    ])
+    const uiTimer = setTimeout(() => {
+      if (!cancelled) setHydrated(true);
+    }, STORAGE_LOAD_TIMEOUT_MS);
+
+    Promise.all([loadShopState(), loadOrders()])
       .then(([state, savedOrders]) => {
         if (cancelled) return;
-        setCart(
-          state.cart.map((line) => ({
-            ...line,
-            plant: refreshPlant(line.plant),
-          })),
-        );
-        setWishlist(state.wishlist.map(refreshPlant));
-        setOrders(savedOrders);
+        if (!dirtyRef.current) {
+          setCart(
+            state.cart.map((line) => ({
+              ...line,
+              plant: refreshPlant(line.plant),
+            })),
+          );
+          setWishlist(state.wishlist.map(refreshPlant));
+          setOrders(savedOrders);
+        }
+        setCanPersist(true);
+        setHydrated(true);
       })
       .catch(() => {
-        /* seed vacío vía estado inicial */
+        if (cancelled) return;
+        setCanPersist(true);
+        setHydrated(true);
       })
       .finally(() => {
-        if (!cancelled) setHydrated(true);
+        clearTimeout(uiTimer);
       });
+
     return () => {
       cancelled = true;
+      clearTimeout(uiTimer);
     };
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!canPersist) return;
     void saveCart(cart);
-  }, [cart, hydrated]);
+  }, [cart, canPersist]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!canPersist) return;
     void saveWishlist(wishlist);
-  }, [wishlist, hydrated]);
+  }, [wishlist, canPersist]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!canPersist) return;
     void saveOrders(orders);
-  }, [orders, hydrated]);
+  }, [orders, canPersist]);
 
   const value = useMemo<ShopContextValue>(() => {
     const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
@@ -101,6 +120,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
       cartTotal,
       hydrated,
       addToCart: (plant, quantity = 1) => {
+        dirtyRef.current = true;
         const amount = Math.max(1, quantity);
         setCart((prev) => {
           const existing = prev.find((line) => line.plant.id === plant.id);
@@ -113,9 +133,11 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         });
       },
       removeFromCart: (plantId) => {
+        dirtyRef.current = true;
         setCart((prev) => prev.filter((line) => line.plant.id !== plantId));
       },
       updateQuantity: (plantId, quantity) => {
+        dirtyRef.current = true;
         setCart((prev) =>
           prev
             .map((line) => (line.plant.id === plantId ? { ...line, quantity } : line))
@@ -123,18 +145,24 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         );
       },
       toggleWishlist: (plant) => {
+        dirtyRef.current = true;
         setWishlist((prev) => {
           const exists = prev.some((item) => item.id === plant.id);
           return exists ? prev.filter((item) => item.id !== plant.id) : [...prev, plant];
         });
       },
       isInWishlist: (plantId) => wishlist.some((item) => item.id === plantId),
-      clearCart: () => setCart([]),
+      clearCart: () => {
+        dirtyRef.current = true;
+        setCart([]);
+      },
       placeOrder: (order) => {
+        dirtyRef.current = true;
         setOrders((prev) => [order, ...prev]);
         setCart([]);
       },
       cancelOrder: (orderId) => {
+        dirtyRef.current = true;
         setOrders((prev) =>
           prev.map((order) =>
             order.id === orderId && normalizeOrderStatus(order.status) !== "delivered"
@@ -144,6 +172,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         );
       },
       advanceOrderStatus: (orderId) => {
+        dirtyRef.current = true;
         const sequence = ["prepared", "shipped", "in_transit", "delivered"] as const;
         setOrders((prev) =>
           prev.map((order) => {

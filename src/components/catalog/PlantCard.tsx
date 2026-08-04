@@ -5,12 +5,17 @@ import { colors, elevation } from "@/src/theme/tokens";
 import { formatPrice, salePercent } from "@/src/utils/pricing";
 import { PressableScale } from "@/src/components/ui/PressableScale";
 
+/** Ancho de tarjetas en carruseles horizontales (Home, relacionadas, etc.). */
+export const HORIZONTAL_PLANT_CARD_WIDTH = 196;
+
 interface PlantCardProps {
   plant: Plant;
   onPress?: () => void;
   onToggleWishlist?: () => void;
   wishlisted?: boolean;
   compact?: boolean;
+  /** Carrusel horizontal: tipografía e imagen un poco más cómodas. */
+  horizontal?: boolean;
   variant?: "catalog" | "wishlist";
 }
 
@@ -20,6 +25,7 @@ export function PlantCard({
   onToggleWishlist,
   wishlisted = false,
   compact = false,
+  horizontal = false,
   variant = "catalog",
 }: PlantCardProps) {
   const percent = plant.salePercent ?? salePercent(plant.price, plant.originalPrice);
@@ -27,9 +33,11 @@ export function PlantCard({
 
   const imageStyle = isWishlist
     ? ({ width: "100%", aspectRatio: 1 } as const)
-    : compact
-      ? ({ width: "100%", height: 112 } as const)
-      : ({ width: "100%", aspectRatio: 1 } as const);
+    : horizontal
+      ? ({ width: "100%", height: 132 } as const)
+      : compact
+        ? ({ width: "100%", height: 112 } as const)
+        : ({ width: "100%", aspectRatio: 1 } as const);
 
   return (
     <View className={`w-full ${isWishlist ? "mb-5" : "mb-4"}`}>
@@ -78,14 +86,17 @@ export function PlantCard({
           </Text>
         </View>
         <Text
-          className={`mt-1 text-rizoma-black ${compact ? "text-sm" : "text-base"}`}
+          className={`mt-1 text-rizoma-black ${compact && !horizontal ? "text-sm" : "text-base"}`}
           style={{ fontFamily: "Inter_700Bold" }}
-          numberOfLines={1}
+          numberOfLines={horizontal ? 2 : 1}
         >
           {plant.name}
         </Text>
         <View className="mt-1 flex-row items-center gap-2">
-          <Text className="text-sm text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+          <Text
+            className={`${horizontal ? "text-base" : "text-sm"} text-rizoma-black`}
+            style={{ fontFamily: "Inter_700Bold" }}
+          >
             {formatPrice(plant.price)}
           </Text>
           {plant.originalPrice && plant.originalPrice > plant.price ? (

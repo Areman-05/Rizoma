@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { FlatList, Text, useWindowDimensions, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { FlatList, useWindowDimensions, View } from "react-native";
 import { router } from "expo-router";
 import { Heart, Search } from "lucide-react-native";
 import { PlantCard } from "@/src/components/catalog/PlantCard";
@@ -7,6 +7,7 @@ import { useShop } from "@/src/store/ShopContext";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
+import { InAppToast } from "@/src/components/ui/InAppToast";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { getPlantById } from "@/src/data/plants";
@@ -23,6 +24,7 @@ export default function WishlistScreen() {
   const [query, setQuery] = useState("");
   const { width: screenWidth } = useWindowDimensions();
   const columnWidth = (screenWidth - SCREEN_H_PADDING - COLUMN_GAP) / 2;
+  const hideToast = useCallback(() => setToast(null), []);
 
   // Preferir datos frescos del catálogo (nombres en español) sobre el snapshot persistido
   const items = useMemo(
@@ -46,13 +48,12 @@ export default function WishlistScreen() {
     <Screen>
       <ScreenHeader title="Favoritos" showBack={false} showNotificationBadge />
 
-      {toast ? (
-        <View className="mb-2 rounded-2xl bg-rizoma-brandSoft px-4 py-3">
-          <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-            {toast}
-          </Text>
-        </View>
-      ) : null}
+      <InAppToast
+        visible={!!toast}
+        message={toast ?? ""}
+        durationMs={2000}
+        onHide={hideToast}
+      />
 
       {!hasFavorites ? (
         <EmptyState
@@ -106,9 +107,10 @@ export default function WishlistScreen() {
                         const count = filtered.length;
                         filtered.forEach((plant) => addToCart(plant));
                         setToast(
-                          `${count} planta${count === 1 ? "" : "s"} añadida${count === 1 ? "" : "s"} al carrito`,
+                          count === 1
+                            ? "Añadido al carrito"
+                            : `${count} plantas añadidas al carrito`,
                         );
-                        setTimeout(() => setToast(null), 2500);
                       }}
                     />
                   </View>

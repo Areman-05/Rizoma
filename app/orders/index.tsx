@@ -79,7 +79,7 @@ function OrderCard({ order }: { order: Order }) {
 }
 
 export default function OrdersScreen() {
-  const { orders } = useShop();
+  const { orders, cartCount } = useShop();
 
   if (orders.length === 0) {
     return (
@@ -87,9 +87,15 @@ export default function OrdersScreen() {
         <ScreenHeader title="Mis pedidos" />
         <EmptyState
           title="Sin pedidos todavía"
-          description="Cuando confirmes un checkout, verás el seguimiento aquí."
-          actionLabel="Ir al catálogo"
-          onActionPress={() => router.push("/(tabs)/explore")}
+          description={
+            cartCount > 0
+              ? "Tienes plantas en el carrito. Abre Carrito y pulsa «Ir a pagar» para confirmar el pedido demo."
+              : "Añade plantas al carrito, pulsa «Ir a pagar» y confirma el checkout demo."
+          }
+          actionLabel={cartCount > 0 ? "Ir al carrito" : "Explorar catálogo"}
+          onActionPress={() =>
+            router.push(cartCount > 0 ? "/(tabs)/cart" : "/(tabs)/explore")
+          }
         />
       </Screen>
     );

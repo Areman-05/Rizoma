@@ -28,6 +28,22 @@ export function wateringLabel(watering: string): string {
   }
 }
 
+/** Días objetivo entre riegos según la cadencia del catálogo. */
+export function wateringIntervalDays(watering: string): number {
+  switch (watering) {
+    case "2x week":
+      return 3;
+    case "weekly":
+      return 7;
+    case "biweekly":
+      return 14;
+    case "monthly":
+      return 30;
+    default:
+      return 7;
+  }
+}
+
 export function difficultyLabel(difficulty: PlantDifficulty | string): string {
   switch (difficulty) {
     case "easy":

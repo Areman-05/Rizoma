@@ -9,13 +9,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
-import { Screen } from "@/src/components/ui/Screen";
 import {
   getGoogleAuthRequestConfig,
   getGoogleRedirectUriOptions,
@@ -23,7 +24,7 @@ import {
 import { useAuth, userFromGoogleIdToken } from "@/src/context/AuthContext";
 import { login as loginLocal, UserStoreError } from "@/src/services/userStore";
 import { saveProfileAvatar, saveProfileName } from "@/src/store/persistence";
-import { colors } from "@/src/theme/tokens";
+import { colors, spacing } from "@/src/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -195,297 +196,275 @@ export default function LoginScreen() {
     }
   };
 
+  const inputStyle = {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.white,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    fontSize: 16,
+    color: colors.black,
+    fontFamily: "Inter_500Medium" as const,
+  };
+
   return (
-    <Screen scroll>
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.white }}
+      edges={["top", "left", "right", "bottom"]}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
       >
-        <Animated.View
+        <View
           style={{
-            opacity: formOpacity,
-            transform: [{ translateY: formTranslate }],
-            paddingBottom: 24,
+            flex: 1,
+            flexDirection: "column",
+            paddingHorizontal: spacing.screenMargin,
           }}
         >
-          <View style={{ marginTop: 24, alignItems: "center" }}>
-            <View
+          <ScrollView
+            style={{ flex: 1, minHeight: 0 }}
+            contentContainerStyle={{ paddingTop: 8, paddingBottom: 24 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Animated.View
               style={{
-                marginBottom: 20,
-                height: 64,
-                width: 64,
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 999,
-                backgroundColor: colors.brandSoft,
+                opacity: formOpacity,
+                transform: [{ translateY: formTranslate }],
               }}
             >
-              <RizomaLogo size="md" showWordmark={false} />
-            </View>
-            <Text
-              style={{
-                fontSize: 30,
-                color: colors.black,
-                fontFamily: "Inter_700Bold",
-              }}
-            >
-              Rizoma
-            </Text>
-            <Text
-              style={{
-                marginTop: 8,
-                paddingHorizontal: 16,
-                textAlign: "center",
-                fontSize: 15,
-                lineHeight: 22,
-                color: colors.secondaryText,
-                fontFamily: "Inter_400Regular",
-              }}
-            >
-              Entra con tu cuenta o con Google. También puedes continuar como invitado.
-            </Text>
-          </View>
-
-          <View style={{ marginTop: 32, gap: 14 }}>
-            <View>
-              <Text
-                style={{
-                  marginBottom: 8,
-                  marginLeft: 4,
-                  fontSize: 14,
-                  color: colors.secondaryText,
-                  fontFamily: "Inter_500Medium",
-                }}
-              >
-                Correo electrónico
-              </Text>
-              <TextInput
-                value={email}
-                onChangeText={(value) => {
-                  setEmail(value);
-                  clearError();
-                }}
-                placeholder="tu@email.com"
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                placeholderTextColor={colors.grayText}
-                accessibilityLabel="Correo electrónico"
-                style={{
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  backgroundColor: colors.white,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: colors.black,
-                  fontFamily: "Inter_500Medium",
-                }}
-              />
-            </View>
-
-            <View>
-              <Text
-                style={{
-                  marginBottom: 8,
-                  marginLeft: 4,
-                  fontSize: 14,
-                  color: colors.secondaryText,
-                  fontFamily: "Inter_500Medium",
-                }}
-              >
-                Contraseña
-              </Text>
-              <TextInput
-                value={password}
-                onChangeText={(value) => {
-                  setPassword(value);
-                  clearError();
-                }}
-                placeholder="Tu contraseña"
-                placeholderTextColor={colors.grayText}
-                secureTextEntry
-                textContentType="password"
-                accessibilityLabel="Contraseña"
-                style={{
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  backgroundColor: colors.white,
-                  paddingHorizontal: 16,
-                  paddingVertical: 16,
-                  fontSize: 16,
-                  color: colors.black,
-                  fontFamily: "Inter_500Medium",
-                }}
-              />
-            </View>
-
-            <Pressable
-              onPress={onForgotPassword}
-              accessibilityRole="button"
-              accessibilityLabel="¿Olvidaste tu contraseña?"
-              style={({ pressed }) => ({
-                alignSelf: "flex-end",
-                paddingHorizontal: 4,
-                paddingVertical: 4,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: colors.brand,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                ¿Olvidaste tu contraseña?
-              </Text>
-            </Pressable>
-
-            {error ? (
-              <View
-                style={{
-                  borderRadius: 16,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  backgroundColor: "#FEF2F2",
-                }}
-              >
-                <Text
+              <View style={{ marginTop: 16, alignItems: "center" }}>
+                <View
                   style={{
-                    fontSize: 14,
-                    color: colors.red,
-                    fontFamily: "Inter_500Medium",
+                    marginBottom: 20,
+                    height: 64,
+                    width: 64,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 999,
+                    backgroundColor: colors.brandSoft,
                   }}
                 >
-                  {error}
+                  <RizomaLogo size="md" showWordmark={false} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 30,
+                    color: colors.black,
+                    fontFamily: "Inter_700Bold",
+                  }}
+                >
+                  Rizoma
+                </Text>
+                <Text
+                  style={{
+                    marginTop: 8,
+                    paddingHorizontal: 16,
+                    textAlign: "center",
+                    fontSize: 15,
+                    lineHeight: 22,
+                    color: colors.secondaryText,
+                    fontFamily: "Inter_400Regular",
+                  }}
+                >
+                  Entra con tu cuenta o con Google. También puedes continuar como invitado.
                 </Text>
               </View>
-            ) : null}
 
-            {/* CTA primario: estilos inline para que no se pierda en el emulador */}
-            <RizomaButton
-              label={busy ? "Entrando..." : "Iniciar sesión"}
-              onPress={onSubmit}
-              disabled={busy}
-            />
+              <View style={{ marginTop: 28, gap: 14 }}>
+                <View>
+                  <Text
+                    style={{
+                      marginBottom: 8,
+                      marginLeft: 4,
+                      fontSize: 14,
+                      color: colors.secondaryText,
+                      fontFamily: "Inter_500Medium",
+                    }}
+                  >
+                    Correo electrónico
+                  </Text>
+                  <TextInput
+                    value={email}
+                    onChangeText={(value) => {
+                      setEmail(value);
+                      clearError();
+                    }}
+                    placeholder="tu@email.com"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                    placeholderTextColor={colors.grayText}
+                    accessibilityLabel="Correo electrónico"
+                    style={inputStyle}
+                  />
+                </View>
 
-            <Pressable
-              onPress={() => router.push("/register")}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel="Crear cuenta"
-              style={({ pressed }) => ({
-                alignItems: "center",
-                paddingVertical: 10,
-                opacity: pressed || busy ? 0.7 : 1,
-              })}
-            >
+                <View>
+                  <Text
+                    style={{
+                      marginBottom: 8,
+                      marginLeft: 4,
+                      fontSize: 14,
+                      color: colors.secondaryText,
+                      fontFamily: "Inter_500Medium",
+                    }}
+                  >
+                    Contraseña
+                  </Text>
+                  <TextInput
+                    value={password}
+                    onChangeText={(value) => {
+                      setPassword(value);
+                      clearError();
+                    }}
+                    placeholder="Tu contraseña"
+                    placeholderTextColor={colors.grayText}
+                    secureTextEntry
+                    textContentType="password"
+                    accessibilityLabel="Contraseña"
+                    style={inputStyle}
+                  />
+                </View>
+
+                <Pressable
+                  onPress={onForgotPassword}
+                  accessibilityRole="button"
+                  accessibilityLabel="¿Olvidaste tu contraseña?"
+                  style={({ pressed }) => ({
+                    alignSelf: "flex-end",
+                    paddingHorizontal: 4,
+                    paddingVertical: 4,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: colors.brand,
+                      fontFamily: "Inter_600SemiBold",
+                    }}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Text>
+                </Pressable>
+
+                {error ? (
+                  <View
+                    style={{
+                      borderRadius: 16,
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      backgroundColor: "#FEF2F2",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: colors.red,
+                        fontFamily: "Inter_500Medium",
+                      }}
+                    >
+                      {error}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {/* CTAs dentro del scroll: View wrapper garantiza altura (NativeWind puede colapsar Pressable) */}
+                <RizomaButton
+                  label={busy ? "Entrando..." : "Iniciar sesión"}
+                  onPress={onSubmit}
+                  disabled={busy}
+                />
+
+                <RizomaButton
+                  label="Crear cuenta"
+                  onPress={() => router.push("/register")}
+                  variant="secondary"
+                  disabled={busy}
+                />
+              </View>
+
+              <View style={{ marginTop: 20, gap: 12 }}>
+                <View
+                  style={{
+                    marginVertical: 4,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: colors.grayText,
+                      fontFamily: "Inter_500Medium",
+                      textAlign: "center",
+                    }}
+                  >
+                    o continúa con
+                  </Text>
+                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+                </View>
+
+                <RizomaButton
+                  label={busy ? "Conectando con Google..." : "Continuar con Google"}
+                  onPress={onGoogle}
+                  variant="google"
+                  disabled={busy || !request}
+                />
+              </View>
+
+              <View style={{ marginTop: 40 }}>
+                <Pressable
+                  onPress={enterApp}
+                  disabled={busy}
+                  accessibilityRole="button"
+                  accessibilityLabel="Continuar como invitado"
+                  style={({ pressed }) => ({
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: 44,
+                    paddingVertical: 10,
+                    opacity: pressed ? 0.7 : 1,
+                  })}
+                >
+                  <Text
+                    style={{
+                      fontSize: 15,
+                      color: "#01B763",
+                      fontFamily: "Inter_600SemiBold",
+                      textAlign: "center",
+                    }}
+                  >
+                    Continuar como invitado
+                  </Text>
+                </Pressable>
+              </View>
+
               <Text
                 style={{
-                  fontSize: 15,
-                  color: colors.brand,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                Crear cuenta
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={{ marginTop: 20, gap: 12 }}>
-            <View
-              style={{
-                marginVertical: 4,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-              <Text
-                style={{
+                  marginTop: 20,
+                  marginBottom: 8,
+                  textAlign: "center",
                   fontSize: 12,
+                  lineHeight: 18,
                   color: colors.grayText,
-                  fontFamily: "Inter_500Medium",
+                  fontFamily: "Inter_400Regular",
                 }}
               >
-                o continúa con
+                Al continuar aceptas los términos de la demo Rizoma.{"\n"}
+                Google Sign-In es real; las cuentas email se guardan solo en este dispositivo.
               </Text>
-              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-            </View>
-
-            <Pressable
-              onPress={onGoogle}
-              disabled={busy || !request}
-              accessibilityRole="button"
-              accessibilityLabel="Continuar con Google"
-              style={({ pressed }) => ({
-                alignItems: "center",
-                borderRadius: 999,
-                borderWidth: 1,
-                borderColor: colors.border,
-                backgroundColor: colors.white,
-                minHeight: 56,
-                paddingHorizontal: 20,
-                paddingVertical: 16,
-                justifyContent: "center",
-                opacity: pressed || busy || !request ? 0.75 : 1,
-              })}
-            >
-              <Text
-                style={{
-                  fontSize: 16,
-                  color: colors.black,
-                  fontFamily: "Inter_600SemiBold",
-                }}
-              >
-                {busy ? "Conectando con Google..." : "Continuar con Google"}
-              </Text>
-            </Pressable>
-          </View>
-
-          <Pressable
-            onPress={enterApp}
-            disabled={busy}
-            accessibilityRole="button"
-            accessibilityLabel="Continuar como invitado"
-            style={({ pressed }) => ({
-              marginTop: 20,
-              alignItems: "center",
-              paddingVertical: 8,
-              opacity: pressed ? 0.7 : 1,
-            })}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                color: colors.brand,
-                fontFamily: "Inter_600SemiBold",
-              }}
-            >
-              Continuar como invitado
-            </Text>
-          </Pressable>
-
-          <Text
-            style={{
-              marginTop: 24,
-              textAlign: "center",
-              fontSize: 12,
-              lineHeight: 18,
-              color: colors.grayText,
-              fontFamily: "Inter_400Regular",
-            }}
-          >
-            Al continuar aceptas los términos de la demo Rizoma.{"\n"}
-            Google Sign-In es real; las cuentas email se guardan solo en este dispositivo.
-          </Text>
-        </Animated.View>
+            </Animated.View>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
-    </Screen>
+    </SafeAreaView>
   );
 }

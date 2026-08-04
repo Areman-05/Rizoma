@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { ChevronLeft, Heart, Home, Leaf, Minus, Plus, Star } from "lucide-react-native";
@@ -6,6 +6,7 @@ import { getPlantById } from "@/src/data/plants";
 import { PlantIndicators } from "@/src/components/catalog/PlantIndicators";
 import { CircularIconButton } from "@/src/components/ui/CircularIconButton";
 import { EmptyState } from "@/src/components/ui/EmptyState";
+import { InAppToast } from "@/src/components/ui/InAppToast";
 import { Screen } from "@/src/components/ui/Screen";
 import { useShop } from "@/src/store/ShopContext";
 import { useGarden } from "@/src/store/GardenContext";
@@ -23,11 +24,12 @@ export default function PlantDetailScreen() {
   const insets = useSafeAreaInsets();
   const plant = getPlantById(Array.isArray(id) ? id[0] : id);
   const { addToCart, toggleWishlist, isInWishlist } = useShop();
-  const { addToGarden } = useGarden();
+  const { addToGarden, removeFromGarden, isInGarden } = useGarden();
   const [qty, setQty] = useState(1);
-  const [addedToast, setAddedToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; subtitle?: string } | null>(null);
   const bottomBarPadding = Math.max(insets.bottom, 12);
   const bottomBarHeight = BOTTOM_BAR_CONTENT_HEIGHT + bottomBarPadding;
+  const hideToast = useCallback(() => setToast(null), []);
 
   if (!plant) {
     return (
@@ -43,12 +45,12 @@ export default function PlantDetailScreen() {
   }
 
   const saved = isInWishlist(plant.id);
+  const inGarden = isInGarden(plant.id);
   const related = getRelatedPlants(plant);
   const lineTotal = formatPrice(plant.price * qty);
 
-  const showToast = (message: string) => {
-    setAddedToast(message);
-    setTimeout(() => setAddedToast(null), 2200);
+  const showToast = (message: string, subtitle?: string) => {
+    setToast({ message, subtitle });
   };
 
   return (
@@ -162,37 +164,40 @@ export default function PlantDetailScreen() {
           <Text className="mb-3 mt-8 text-lg text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
             Relacionadas
           </Text>
-          <View className="flex-row gap-2.5">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 12, paddingRight: 4 }}
+          >
             {related.map((item) => (
               <Pressable
                 key={item.id}
                 onPress={() => router.push(`/plants/${item.id}`)}
-                className="min-w-0 flex-1 overflow-hidden rounded-3xl bg-rizoma-gray"
+                className="overflow-hidden rounded-3xl bg-rizoma-gray"
+                style={{ width: 148 }}
               >
-                <Image source={{ uri: item.image }} style={{ width: "100%", height: 88 }} resizeMode="cover" />
+                <Image source={{ uri: item.image }} style={{ width: "100%", height: 110 }} resizeMode="cover" />
                 <Text
-                  className="px-2 py-2 text-center text-xs text-rizoma-black"
+                  className="px-2.5 py-2.5 text-sm text-rizoma-black"
                   style={{ fontFamily: "Inter_600SemiBold" }}
-                  numberOfLines={1}
+                  numberOfLines={2}
                 >
                   {item.name}
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         </View>
       </ScrollView>
 
-      {addedToast ? (
-        <View
-          className="absolute left-[13px] right-[13px] rounded-2xl bg-rizoma-brandSoft px-4 py-3"
-          style={{ bottom: bottomBarHeight + 12 }}
-        >
-          <Text className="text-center text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
-            {addedToast}
-          </Text>
-        </View>
-      ) : null}
+      <InAppToast
+        visible={!!toast}
+        message={toast?.message ?? ""}
+        subtitle={toast?.subtitle}
+        bottom={bottomBarHeight + 12}
+        durationMs={2000}
+        onHide={hideToast}
+      />
 
       <View
         className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-2.5"
@@ -200,18 +205,26 @@ export default function PlantDetailScreen() {
       >
         <View className="mb-2.5 flex-row items-center justify-end px-0.5">
           <Pressable
-            accessibilityLabel="Guardar en Mi Jardín"
+            accessibilityLabel={inGarden ? "Quitar de Mi Jardín" : "Guardar en Mi Jardín"}
             onPress={() => {
-              addToGarden(plant);
-              showToast("Guardada en Mi Jardín");
+              if (inGarden) {
+                removeFromGarden(plant.id);
+                showToast("Quitada de Mi Jardín", plant.name);
+                return;
+              }
+              const added = addToGarden(plant);
+              showToast(added ? "Guardada en Mi Jardín" : "Ya está en Mi Jardín", plant.name);
             }}
             className="flex-row items-center gap-1.5 py-1"
             hitSlop={4}
             style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
           >
-            <Leaf size={15} color={colors.brand} />
-            <Text className="text-[11px] text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
-              Mi Jardín
+            <Leaf size={15} color={colors.brand} fill={inGarden ? colors.brand : "transparent"} />
+            <Text
+              className={`text-[11px] ${inGarden ? "text-rizoma-brand" : "text-rizoma-secondaryText"}`}
+              style={{ fontFamily: "Inter_500Medium" }}
+            >
+              {inGarden ? "En Mi Jardín" : "Mi Jardín"}
             </Text>
           </Pressable>
         </View>
@@ -246,7 +259,10 @@ export default function PlantDetailScreen() {
             accessibilityLabel="Añadir al carrito"
             onPress={() => {
               addToCart(plant, qty);
-              showToast(`${qty} añadida${qty > 1 ? "s" : ""} al carrito`);
+              showToast(
+                qty > 1 ? `Añadido al carrito · ${qty} ud.` : "Añadido al carrito",
+                plant.name,
+              );
             }}
             className="h-12 flex-1 items-center justify-center rounded-full bg-rizoma-brand px-4"
             style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
