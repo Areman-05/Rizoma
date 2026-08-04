@@ -2,6 +2,7 @@ import {
   createOrderId,
   normalizeOrderStatus,
   trackingStepIndex,
+  trackingSteps,
 } from "@/src/types/orders";
 
 describe("orders helpers", () => {
@@ -24,5 +25,14 @@ describe("orders helpers", () => {
     expect(trackingStepIndex("delivered")).toBe(3);
     expect(trackingStepIndex("cancelled")).toBe(-1);
     expect(trackingStepIndex("received")).toBe(0);
+  });
+
+  it("usa labels de reparto", () => {
+    expect(trackingSteps.map((s) => s.title)).toEqual([
+      "Preparando",
+      "Enviado",
+      "En reparto",
+      "Entregado",
+    ]);
   });
 });
