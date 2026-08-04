@@ -36,8 +36,8 @@ function GoogleGMark({ size = 20 }: { size?: number }) {
 
 /**
  * CTA estable sin NativeWind jsx runtime (`@jsxImportSource react`).
- * Shell fija 56dp; Pressable llena y centra con justify/align (sin absoluteFill,
- * sin fila vacía, sin children-as-function que NativeWind rompe).
+ * Shell fija 56dp; Pressable llena y centra con justify/align.
+ * Sombra brand en primary; sombra ligera en Google (sin overflow:hidden).
  */
 export function RizomaButton({
   label,
@@ -105,15 +105,24 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 56,
     minHeight: 56,
-    borderRadius: 999,
-    overflow: "hidden",
+    borderRadius: 18,
     flexShrink: 0,
   },
   shellPrimary: {
     backgroundColor: "#01B763",
+    shadowColor: "#01B763",
+    shadowOpacity: 0.32,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   shellDanger: {
     backgroundColor: "#EF4444",
+    shadowColor: "#EF4444",
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   shellSecondary: {
     backgroundColor: "#FFFFFF",
@@ -123,13 +132,20 @@ const styles = StyleSheet.create({
   shellGoogle: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DADCE0",
+    borderColor: "rgba(1, 183, 99, 0.12)",
+    borderRadius: 999,
+    shadowColor: "#0A5C3A",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   shellDisabled: {
     opacity: 0.6,
   },
   shellPressed: {
-    opacity: 0.88,
+    opacity: 0.9,
+    transform: [{ scale: 0.985 }],
   },
   hit: {
     width: "100%",
@@ -137,6 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+    borderRadius: 18,
   },
   googleCluster: {
     flexDirection: "row",

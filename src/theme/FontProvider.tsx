@@ -6,6 +6,7 @@ import {
   Inter_500Medium,
   Inter_600SemiBold,
   Inter_700Bold,
+  Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { BrandSplash } from "@/src/components/brand/BrandSplash";
@@ -29,6 +30,7 @@ export function FontProvider({ children }: { children: ReactNode }) {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Inter_800ExtraBold,
   });
 
   const [phase, setPhase] = useState<"splash" | "app">(

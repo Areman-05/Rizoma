@@ -1,5 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { login, register, UserStoreError } from "@/src/services/userStore";
+import {
+  isStrongPassword,
+  login,
+  register,
+  UserStoreError,
+} from "@/src/services/userStore";
 
 jest.mock("@react-native-async-storage/async-storage", () => {
   let store: Record<string, string> = {};
@@ -28,18 +33,29 @@ jest.mock("expo-crypto", () => ({
   ),
 }));
 
+const STRONG = "Secreto1!";
+
 describe("userStore", () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
   });
 
+  it("validates password strength rules", () => {
+    expect(isStrongPassword("corta")).toBe(false);
+    expect(isStrongPassword("solominus1")).toBe(false);
+    expect(isStrongPassword("SOLOMAYUS1")).toBe(false);
+    expect(isStrongPassword("SinNumero!")).toBe(false);
+    expect(isStrongPassword("SinSimbolo1")).toBe(false);
+    expect(isStrongPassword(STRONG)).toBe(true);
+  });
+
   it("registers and logs in with email/password", async () => {
     const created = await register({
       name: "Ana",
       email: "Ana@Example.com",
-      password: "secreto",
-      confirmPassword: "secreto",
+      password: STRONG,
+      confirmPassword: STRONG,
     });
 
     expect(created).toMatchObject({
@@ -48,25 +64,36 @@ describe("userStore", () => {
       provider: "email",
     });
 
-    const session = await login("ana@example.com", "secreto");
+    const session = await login("ana@example.com", STRONG);
     expect(session.id).toBe(created.id);
     expect(session.name).toBe("Ana");
+  });
+
+  it("rejects weak passwords on register", async () => {
+    await expect(
+      register({
+        name: "Ana",
+        email: "ana@example.com",
+        password: "secreto",
+        confirmPassword: "secreto",
+      }),
+    ).rejects.toBeInstanceOf(UserStoreError);
   });
 
   it("rejects duplicate email", async () => {
     await register({
       name: "Ana",
       email: "ana@example.com",
-      password: "secreto",
-      confirmPassword: "secreto",
+      password: STRONG,
+      confirmPassword: STRONG,
     });
 
     await expect(
       register({
         name: "Otra",
         email: "ana@example.com",
-        password: "otra123",
-        confirmPassword: "otra123",
+        password: "Otra123!",
+        confirmPassword: "Otra123!",
       }),
     ).rejects.toBeInstanceOf(UserStoreError);
   });
@@ -75,8 +102,8 @@ describe("userStore", () => {
     await register({
       name: "Ana",
       email: "ana@example.com",
-      password: "secreto",
-      confirmPassword: "secreto",
+      password: STRONG,
+      confirmPassword: STRONG,
     });
 
     await expect(login("ana@example.com", "mal")).rejects.toBeInstanceOf(UserStoreError);

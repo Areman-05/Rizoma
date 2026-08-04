@@ -3,7 +3,14 @@ import * as Crypto from "expo-crypto";
 import type { AuthUser } from "@/src/context/AuthContext";
 
 const USERS_KEY = "@rizoma/users";
-const MIN_PASSWORD_LENGTH = 6;
+const MIN_PASSWORD_LENGTH = 8;
+
+/** Hint sutil para el campo de contraseña en registro. */
+export const PASSWORD_HINT =
+  "Mín. 8 caracteres, con mayúscula, minúscula, número y símbolo.";
+
+const PASSWORD_RULE_ERROR =
+  "La contraseña debe tener al menos 8 caracteres e incluir una mayúscula, una minúscula, un número y un símbolo.";
 
 export type StoredUser = {
   id: string;
@@ -28,6 +35,16 @@ function normalizeEmail(email: string): string {
 function isValidEmail(email: string): boolean {
   // Validación sencilla para demo local (no RFC completo).
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/** Reglas de creación de contraseña (no se aplican en login). */
+export function isStrongPassword(password: string): boolean {
+  if (password.length < MIN_PASSWORD_LENGTH) return false;
+  if (!/[A-ZÁÉÍÓÚÜÑ]/.test(password)) return false;
+  if (!/[a-záéíóúüñ]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]/.test(password)) return false;
+  return true;
 }
 
 async function hashPassword(password: string, salt: string): Promise<string> {
@@ -99,10 +116,8 @@ export async function register(input: RegisterInput): Promise<AuthUser> {
   if (!isValidEmail(email)) {
     throw new UserStoreError("Introduce un correo electrónico válido.");
   }
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    throw new UserStoreError(
-      `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`,
-    );
+  if (!isStrongPassword(password)) {
+    throw new UserStoreError(PASSWORD_RULE_ERROR);
   }
   if (confirm !== undefined && password !== confirm) {
     throw new UserStoreError("Las contraseñas no coinciden.");

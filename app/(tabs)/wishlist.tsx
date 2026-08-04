@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FlatList, useWindowDimensions, View } from "react-native";
 import { router } from "expo-router";
 import { Heart, Search } from "lucide-react-native";
@@ -7,9 +7,7 @@ import { useShop } from "@/src/store/ShopContext";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
-import { InAppToast } from "@/src/components/ui/InAppToast";
 import { LeafySearchBar } from "@/src/components/ui/LeafySearchBar";
-import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { getPlantById } from "@/src/data/plants";
 
 const COLUMN_GAP = 16;
@@ -19,12 +17,10 @@ const SCREEN_H_PADDING = 26;
 const SEARCH_TO_GRID_GAP = 10;
 
 export default function WishlistScreen() {
-  const { wishlist, toggleWishlist, isInWishlist, addToCart } = useShop();
-  const [toast, setToast] = useState<string | null>(null);
+  const { wishlist, toggleWishlist, isInWishlist } = useShop();
   const [query, setQuery] = useState("");
   const { width: screenWidth } = useWindowDimensions();
   const columnWidth = (screenWidth - SCREEN_H_PADDING - COLUMN_GAP) / 2;
-  const hideToast = useCallback(() => setToast(null), []);
 
   // Preferir datos frescos del catálogo (nombres en español) sobre el snapshot persistido
   const items = useMemo(
@@ -47,13 +43,6 @@ export default function WishlistScreen() {
   return (
     <Screen>
       <ScreenHeader title="Favoritos" showBack={false} showNotificationBadge />
-
-      <InAppToast
-        visible={!!toast}
-        message={toast ?? ""}
-        durationMs={2000}
-        onHide={hideToast}
-      />
 
       {!hasFavorites ? (
         <EmptyState
@@ -92,28 +81,12 @@ export default function WishlistScreen() {
               contentContainerStyle={{ paddingTop: 0, paddingBottom: 24 }}
               ListHeaderComponentStyle={{ marginBottom: SEARCH_TO_GRID_GAP }}
               ListHeaderComponent={
-                <View>
-                  <View style={{ marginTop: 20 }}>
-                    <LeafySearchBar
-                      value={query}
-                      onChangeText={setQuery}
-                      placeholder="Buscar en favoritos..."
-                    />
-                  </View>
-                  <View className="mt-2">
-                    <RizomaButton
-                      label="Añadir todos al carrito"
-                      onPress={() => {
-                        const count = filtered.length;
-                        filtered.forEach((plant) => addToCart(plant));
-                        setToast(
-                          count === 1
-                            ? "Añadido al carrito"
-                            : `${count} plantas añadidas al carrito`,
-                        );
-                      }}
-                    />
-                  </View>
+                <View style={{ marginTop: 20 }}>
+                  <LeafySearchBar
+                    value={query}
+                    onChangeText={setQuery}
+                    placeholder="Buscar en favoritos..."
+                  />
                 </View>
               }
               showsVerticalScrollIndicator={false}

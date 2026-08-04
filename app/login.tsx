@@ -2,20 +2,24 @@ import * as AuthSession from "expo-auth-session";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
+import { Lock, Mail } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Easing,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
+import { AuthGreenhouseDecor } from "@/src/components/auth/AuthGreenhouseDecor";
+import { RizomaMark, leafyLogoColors } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import {
   getGoogleAuthRequestConfig,
@@ -24,9 +28,11 @@ import {
 import { useAuth, userFromGoogleIdToken } from "@/src/context/AuthContext";
 import { login as loginLocal, UserStoreError } from "@/src/services/userStore";
 import { saveProfileAvatar, saveProfileName } from "@/src/store/persistence";
-import { colors, spacing } from "@/src/theme/tokens";
+import { colors, radii, spacing, typography } from "@/src/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
+
+type FieldKey = "email" | "password";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
@@ -34,10 +40,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [focused, setFocused] = useState<FieldKey | null>(null);
   const handledResponseKey = useRef<string | null>(null);
 
+  const brandOpacity = useRef(new Animated.Value(0)).current;
+  const brandTranslate = useRef(new Animated.Value(18)).current;
   const formOpacity = useRef(new Animated.Value(0)).current;
-  const formTranslate = useRef(new Animated.Value(12)).current;
+  const formTranslate = useRef(new Animated.Value(22)).current;
 
   const googleConfig = useMemo(() => getGoogleAuthRequestConfig(), []);
   const redirectOptions = useMemo(() => getGoogleRedirectUriOptions(), []);
@@ -47,19 +56,38 @@ export default function LoginScreen() {
   );
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(formOpacity, {
-        toValue: 1,
-        duration: 380,
-        useNativeDriver: true,
-      }),
-      Animated.timing(formTranslate, {
-        toValue: 0,
-        duration: 380,
-        useNativeDriver: true,
-      }),
+    const ease = Easing.bezier(0.22, 1, 0.36, 1);
+    Animated.stagger(90, [
+      Animated.parallel([
+        Animated.timing(brandOpacity, {
+          toValue: 1,
+          duration: 480,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(brandTranslate, {
+          toValue: 0,
+          duration: 480,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(formOpacity, {
+          toValue: 1,
+          duration: 440,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(formTranslate, {
+          toValue: 0,
+          duration: 440,
+          easing: ease,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
-  }, [formOpacity, formTranslate]);
+  }, [brandOpacity, brandTranslate, formOpacity, formTranslate]);
 
   useEffect(() => {
     if (!__DEV__) return;
@@ -146,10 +174,6 @@ export default function LoginScreen() {
 
   const clearError = () => setError(null);
 
-  const enterApp = () => {
-    router.replace("/(tabs)");
-  };
-
   const onSubmit = () => {
     if (busy) return;
     setBusy(true);
@@ -159,7 +183,7 @@ export default function LoginScreen() {
         const user = await loginLocal(email, password);
         await signIn(user);
         await saveProfileName(user.name);
-        enterApp();
+        router.replace("/(tabs)");
       } catch (err) {
         const message =
           err instanceof UserStoreError
@@ -175,7 +199,7 @@ export default function LoginScreen() {
   const onForgotPassword = () => {
     Alert.alert(
       "Recuperar contraseña",
-      "En la demo no hay recuperación real. Crea una cuenta nueva o continúa como invitado.",
+      "La recuperación aún no está disponible. Crea una cuenta nueva o inicia sesión con Google.",
     );
   };
 
@@ -196,103 +220,66 @@ export default function LoginScreen() {
     }
   };
 
-  const inputStyle = {
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: colors.black,
-    fontFamily: "Inter_500Medium" as const,
-  };
+  const iconColor = (key: FieldKey) =>
+    focused === key ? colors.brand : leafyLogoColors.leafDeep;
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.white }}
-      edges={["top", "left", "right", "bottom"]}
-    >
+    <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
+      <AuthGreenhouseDecor />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        style={styles.flex}
       >
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "column",
-            paddingHorizontal: spacing.screenMargin,
-          }}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces
         >
-          <ScrollView
-            style={{ flex: 1, minHeight: 0 }}
-            contentContainerStyle={{ paddingTop: 8, paddingBottom: 24 }}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+          <Animated.View
+            style={{
+              opacity: brandOpacity,
+              transform: [{ translateY: brandTranslate }],
+            }}
           >
-            <Animated.View
-              style={{
-                opacity: formOpacity,
-                transform: [{ translateY: formTranslate }],
-              }}
-            >
-              <View style={{ marginTop: 16, alignItems: "center" }}>
-                <View
-                  style={{
-                    marginBottom: 20,
-                    height: 64,
-                    width: 64,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 999,
-                    backgroundColor: colors.brandSoft,
-                  }}
-                >
-                  <RizomaLogo size="md" showWordmark={false} />
+            <View style={styles.brandBlock}>
+              <View style={styles.medallionOuter}>
+                <View style={styles.logoDisc}>
+                  <RizomaMark size={56} />
                 </View>
-                <Text
-                  style={{
-                    fontSize: 30,
-                    color: colors.black,
-                    fontFamily: "Inter_700Bold",
-                  }}
-                >
-                  Rizoma
-                </Text>
-                <Text
-                  style={{
-                    marginTop: 8,
-                    paddingHorizontal: 16,
-                    textAlign: "center",
-                    fontSize: 15,
-                    lineHeight: 22,
-                    color: colors.secondaryText,
-                    fontFamily: "Inter_400Regular",
-                  }}
-                >
-                  Entra con tu cuenta o con Google. También puedes continuar como invitado.
-                </Text>
               </View>
+              <Text style={styles.wordmark} allowFontScaling={false}>
+                Rizoma
+              </Text>
+              <Text style={styles.tagline}>Tu jardín, en orden.</Text>
+            </View>
+          </Animated.View>
 
-              <View style={{ marginTop: 28, gap: 14 }}>
-                <View>
-                  <Text
-                    style={{
-                      marginBottom: 8,
-                      marginLeft: 4,
-                      fontSize: 14,
-                      color: colors.secondaryText,
-                      fontFamily: "Inter_500Medium",
-                    }}
-                  >
-                    Correo electrónico
-                  </Text>
+          <Animated.View
+            style={{
+              opacity: formOpacity,
+              transform: [{ translateY: formTranslate }],
+            }}
+          >
+            <View style={styles.formBlock}>
+              <View style={styles.field}>
+                <Text style={styles.label}>Correo electrónico</Text>
+                <View
+                  style={[
+                    styles.inputShell,
+                    focused === "email" ? styles.inputShellFocused : null,
+                  ]}
+                >
+                  <Mail size={20} color={iconColor("email")} strokeWidth={2.1} />
                   <TextInput
                     value={email}
                     onChangeText={(value) => {
                       setEmail(value);
                       clearError();
                     }}
+                    onFocus={() => setFocused("email")}
+                    onBlur={() => setFocused(null)}
                     placeholder="tu@email.com"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -300,171 +287,301 @@ export default function LoginScreen() {
                     textContentType="emailAddress"
                     placeholderTextColor={colors.grayText}
                     accessibilityLabel="Correo electrónico"
-                    style={inputStyle}
+                    style={styles.input}
                   />
                 </View>
+              </View>
 
-                <View>
-                  <Text
-                    style={{
-                      marginBottom: 8,
-                      marginLeft: 4,
-                      fontSize: 14,
-                      color: colors.secondaryText,
-                      fontFamily: "Inter_500Medium",
-                    }}
-                  >
-                    Contraseña
-                  </Text>
+              <View style={styles.field}>
+                <Text style={styles.label}>Contraseña</Text>
+                <View
+                  style={[
+                    styles.inputShell,
+                    focused === "password" ? styles.inputShellFocused : null,
+                  ]}
+                >
+                  <Lock size={20} color={iconColor("password")} strokeWidth={2.1} />
                   <TextInput
                     value={password}
                     onChangeText={(value) => {
                       setPassword(value);
                       clearError();
                     }}
+                    onFocus={() => setFocused("password")}
+                    onBlur={() => setFocused(null)}
                     placeholder="Tu contraseña"
                     placeholderTextColor={colors.grayText}
                     secureTextEntry
                     textContentType="password"
                     accessibilityLabel="Contraseña"
-                    style={inputStyle}
+                    style={styles.input}
                   />
                 </View>
+              </View>
 
-                <Pressable
-                  onPress={onForgotPassword}
-                  accessibilityRole="button"
-                  accessibilityLabel="¿Olvidaste tu contraseña?"
-                  style={({ pressed }) => ({
-                    alignSelf: "flex-end",
-                    paddingHorizontal: 4,
-                    paddingVertical: 4,
-                    opacity: pressed ? 0.7 : 1,
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      color: colors.brand,
-                      fontFamily: "Inter_600SemiBold",
-                    }}
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </Text>
-                </Pressable>
+              <Pressable
+                onPress={onForgotPassword}
+                accessibilityRole="button"
+                accessibilityLabel="¿Olvidaste tu contraseña?"
+                style={({ pressed }) => [
+                  styles.forgot,
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+              </Pressable>
 
-                {error ? (
-                  <View
-                    style={{
-                      borderRadius: 16,
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                      backgroundColor: "#FEF2F2",
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        color: colors.red,
-                        fontFamily: "Inter_500Medium",
-                      }}
-                    >
-                      {error}
-                    </Text>
-                  </View>
-                ) : null}
+              {error ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
 
-                {/* CTAs dentro del scroll: View wrapper garantiza altura (NativeWind puede colapsar Pressable) */}
+              <View style={styles.ctaStack}>
                 <RizomaButton
                   label={busy ? "Entrando..." : "Iniciar sesión"}
                   onPress={onSubmit}
                   disabled={busy}
                 />
+              </View>
+            </View>
 
-                <RizomaButton
-                  label="Crear cuenta"
-                  onPress={() => router.push("/register")}
-                  variant="secondary"
-                  disabled={busy}
-                />
+            <View style={styles.socialPanel}>
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerLabel}>o</Text>
+                <View style={styles.dividerLine} />
               </View>
 
-              <View style={{ marginTop: 20, gap: 12 }}>
-                <View
-                  style={{
-                    marginVertical: 4,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
-                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: colors.grayText,
-                      fontFamily: "Inter_500Medium",
-                      textAlign: "center",
-                    }}
-                  >
-                    o continúa con
-                  </Text>
-                  <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
-                </View>
+              <RizomaButton
+                label={busy ? "Conectando..." : "Continuar con Google"}
+                onPress={onGoogle}
+                variant="google"
+                disabled={busy || !request}
+              />
+            </View>
 
-                <RizomaButton
-                  label={busy ? "Conectando con Google..." : "Continuar con Google"}
-                  onPress={onGoogle}
-                  variant="google"
-                  disabled={busy || !request}
-                />
-              </View>
-
-              <View style={{ marginTop: 40 }}>
-                <Pressable
-                  onPress={enterApp}
-                  disabled={busy}
-                  accessibilityRole="button"
-                  accessibilityLabel="Continuar como invitado"
-                  style={({ pressed }) => ({
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: 44,
-                    paddingVertical: 10,
-                    opacity: pressed ? 0.7 : 1,
-                  })}
-                >
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      color: "#01B763",
-                      fontFamily: "Inter_600SemiBold",
-                      textAlign: "center",
-                    }}
-                  >
-                    Continuar como invitado
-                  </Text>
-                </Pressable>
-              </View>
-
-              <Text
-                style={{
-                  marginTop: 20,
-                  marginBottom: 8,
-                  textAlign: "center",
-                  fontSize: 12,
-                  lineHeight: 18,
-                  color: colors.grayText,
-                  fontFamily: "Inter_400Regular",
-                }}
-              >
-                Al continuar aceptas los términos de la demo Rizoma.{"\n"}
-                Google Sign-In es real; las cuentas email se guardan solo en este dispositivo.
+            <Pressable
+              onPress={() => router.push("/register")}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel="No tengo cuenta, crear cuenta"
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.authLinkRow,
+                { opacity: pressed || busy ? 0.65 : 1 },
+              ]}
+            >
+              <Text style={styles.authLinkLine} numberOfLines={1}>
+                <Text style={styles.linkMuted}>¿No tienes cuenta? </Text>
+                <Text style={styles.linkAccent}>Crear cuenta</Text>
               </Text>
-            </Animated.View>
-          </ScrollView>
-        </View>
+            </Pressable>
+
+            <Text style={styles.legal}>
+              Al continuar aceptas los términos de uso.{"\n"}
+              La sesión se guarda en este dispositivo.
+            </Text>
+          </Animated.View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: "#E8F8EF",
+  },
+  flex: {
+    flex: 1,
+    zIndex: 1,
+  },
+  scroll: {
+    flex: 1,
+    backgroundColor: "transparent",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.screenMargin + 10,
+    paddingTop: 28,
+    paddingBottom: 44,
+  },
+  brandBlock: {
+    alignItems: "center",
+    marginBottom: 4,
+    zIndex: 1,
+  },
+  medallionOuter: {
+    marginBottom: 18,
+    padding: 6,
+    borderRadius: radii.pill,
+    backgroundColor: "rgba(255, 255, 255, 0.55)",
+  },
+  logoDisc: {
+    height: 92,
+    width: 92,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: radii.pill,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.brandSoft,
+    shadowColor: colors.brand,
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
+  },
+  wordmark: {
+    fontSize: typography.hero + 6,
+    lineHeight: typography.hero + 10,
+    color: leafyLogoColors.wordmark,
+    fontFamily: "Inter_800ExtraBold",
+    letterSpacing: -1.2,
+    textAlign: "center",
+  },
+  tagline: {
+    marginTop: 8,
+    textAlign: "center",
+    fontSize: 16,
+    lineHeight: 22,
+    color: leafyLogoColors.leafDeep,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.2,
+  },
+  formBlock: {
+    marginTop: 32,
+    gap: 18,
+    zIndex: 1,
+  },
+  field: {
+    gap: 0,
+  },
+  label: {
+    marginBottom: 8,
+    marginLeft: 4,
+    fontSize: 12,
+    lineHeight: 16,
+    color: leafyLogoColors.wordmark,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  inputShell: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderRadius: radii.xl,
+    borderWidth: 1.5,
+    borderColor: "rgba(229, 231, 235, 0.95)",
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === "ios" ? 15 : 4,
+    minHeight: 56,
+  },
+  inputShellFocused: {
+    borderColor: colors.brand,
+    backgroundColor: colors.white,
+    shadowColor: colors.brand,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 3,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.black,
+    fontFamily: "Inter_500Medium",
+    paddingVertical: Platform.OS === "ios" ? 0 : 12,
+    includeFontPadding: false,
+  },
+  forgot: {
+    alignSelf: "flex-end",
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+    marginTop: -6,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: colors.brand,
+    fontFamily: "Inter_600SemiBold",
+  },
+  errorBox: {
+    borderRadius: radii.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "rgba(239, 68, 68, 0.2)",
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.red,
+    fontFamily: "Inter_500Medium",
+  },
+  ctaStack: {
+    marginTop: 6,
+  },
+  socialPanel: {
+    marginTop: 28,
+    gap: 16,
+    padding: 18,
+    borderRadius: radii.xxl,
+    backgroundColor: "#F2FBF6",
+    borderWidth: 1,
+    borderColor: "rgba(1, 183, 99, 0.08)",
+    zIndex: 1,
+  },
+  dividerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 4,
+  },
+  dividerLine: {
+    height: StyleSheet.hairlineWidth,
+    flex: 1,
+    backgroundColor: "rgba(10, 92, 58, 0.18)",
+  },
+  dividerLabel: {
+    fontSize: 13,
+    color: leafyLogoColors.leafDeep,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.4,
+  },
+  authLinkRow: {
+    marginTop: 36,
+    minHeight: 48,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
+  authLinkLine: {
+    textAlign: "center",
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  linkMuted: {
+    color: colors.secondaryText,
+    fontFamily: "Inter_400Regular",
+  },
+  linkAccent: {
+    color: colors.brand,
+    fontFamily: "Inter_700Bold",
+  },
+  legal: {
+    marginTop: 8,
+    textAlign: "center",
+    fontSize: 12,
+    lineHeight: 18,
+    color: colors.grayText,
+    fontFamily: "Inter_400Regular",
+    paddingHorizontal: spacing.md,
+    zIndex: 1,
+  },
+});

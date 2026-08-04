@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "@/src/polyfills/colorScheme";
-import { AuthProvider } from "@/src/context/AuthContext";
+import { AuthProvider, useAuth } from "@/src/context/AuthContext";
 import { FontProvider } from "@/src/theme/FontProvider";
 import { ShopProvider } from "@/src/store/ShopContext";
 import { GardenProvider } from "@/src/store/GardenContext";
@@ -11,24 +11,33 @@ import { ChatProvider } from "@/src/store/ChatContext";
 import { OnboardingProvider, useOnboarding } from "@/src/store/OnboardingContext";
 import "../global.css";
 
-function OnboardingGate({ children }: { children: React.ReactNode }) {
+const AUTH_ROUTES = new Set(["login", "register"]);
+
+function AppGate({ children }: { children: React.ReactNode }) {
   const { ready, needsOnboarding } = useOnboarding();
+  const { user, isReady: authReady } = useAuth();
   const segments = useSegments();
 
   useEffect(() => {
-    if (!ready) return;
-    const onOnboarding = segments[0] === "onboarding";
+    if (!ready || !authReady) return;
+
+    const root = segments[0];
+    const onOnboarding = root === "onboarding";
+    const onAuthRoute = AUTH_ROUTES.has(root ?? "");
+
     if (needsOnboarding && !onOnboarding) {
       router.replace("/onboarding");
       return;
     }
-    if (!needsOnboarding && onOnboarding) {
-      router.replace("/(tabs)");
+
+    // Onboarding terminado: hace falta sesión para entrar a la app (tabs y resto).
+    if (!needsOnboarding && !user && !onAuthRoute) {
+      router.replace("/login");
     }
-  }, [ready, needsOnboarding, segments]);
+  }, [ready, authReady, needsOnboarding, user, segments]);
 
   // Fondo blanco neutro (mismo que splash) — sin BrandSplash para evitar el doble flash.
-  if (!ready) {
+  if (!ready || !authReady) {
     return <View style={{ flex: 1, backgroundColor: "#FFFFFF" }} />;
   }
 
@@ -44,7 +53,7 @@ export default function RootLayout() {
             <ChatProvider>
               <OnboardingProvider>
                 <StatusBar style="dark" />
-                <OnboardingGate>
+                <AppGate>
                   <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="plants/[id]" />
@@ -61,7 +70,7 @@ export default function RootLayout() {
                     <Stack.Screen name="notification-settings" />
                     <Stack.Screen name="chat/[id]" />
                   </Stack>
-                </OnboardingGate>
+                </AppGate>
               </OnboardingProvider>
             </ChatProvider>
           </GardenProvider>
