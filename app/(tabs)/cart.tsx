@@ -1,13 +1,14 @@
 import { router } from "expo-router";
 import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useShop } from "@/src/store/ShopContext";
-import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
+import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { formatPrice } from "@/src/utils/pricing";
 import { calculateShipping, FREE_SHIPPING_FROM } from "@/src/utils/shipping";
-import { colors } from "@/src/theme/tokens";
+import { colors, spacing } from "@/src/theme/tokens";
 
 export default function CartScreen() {
   const { cart, cartTotal, cartCount, updateQuantity, removeFromCart, clearCart } = useShop();
@@ -27,23 +28,24 @@ export default function CartScreen() {
   };
 
   return (
-    <Screen style={{ overflow: "visible" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }} edges={["top", "left", "right"]}>
+      <View style={{ flex: 1, paddingHorizontal: spacing.screenMargin, paddingTop: 8 }}>
         <ScreenHeader title="Carrito" showBack={false} showBell={false} />
 
         {cart.length === 0 ? (
           <EmptyState
             icon={<ShoppingBag size={28} color={emptyIconTone} />}
             title="Tu carrito está vacío"
-            description="Primero añade plantas desde el catálogo. Cuando haya artículos aquí verás el botón «Ir a pagar»."
+            description="Primero añade plantas desde el catálogo. Cuando haya artículos aquí verás el botón «Finalizar pedido»."
             actionLabel="Explorar plantas"
             onActionPress={() => router.push("/(tabs)")}
           />
         ) : (
-          <View style={{ flex: 1, flexDirection: "column", overflow: "visible" }}>
+          <View style={{ flex: 1 }}>
             <ScrollView
-              style={{ flex: 1, minHeight: 0 }}
+              style={{ flex: 1 }}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 16 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
               keyboardShouldPersistTaps="handled"
             >
               <View className="mb-3 flex-row items-center justify-between">
@@ -197,49 +199,18 @@ export default function CartScreen() {
                   </Text>
                 </View>
               </View>
-            </ScrollView>
 
-            {/* Footer en flujo flex (no absolute): queda siempre visible encima de la tab bar */}
-            <View
-              style={{
-                flexShrink: 0,
-                backgroundColor: colors.white,
-                borderTopWidth: 1,
-                borderTopColor: colors.border,
-                paddingTop: 12,
-                paddingBottom: 12,
-              }}
-            >
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Ir a pagar, total ${formatPrice(payable)}`}
-                onPress={goToCheckout}
-                style={({ pressed }) => ({
-                  backgroundColor: colors.brand,
-                  borderRadius: 999,
-                  minHeight: 56,
-                  paddingVertical: 16,
-                  paddingHorizontal: 20,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: pressed ? 0.9 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                })}
-              >
-                <Text
-                  style={{
-                    color: colors.white,
-                    fontFamily: "Inter_700Bold",
-                    fontSize: 16,
-                    textAlign: "center",
-                  }}
-                >
-                  {`Ir a pagar · ${formatPrice(payable)}`}
-                </Text>
-              </Pressable>
-            </View>
+              {/* CTA en el flujo del scroll: siempre visible bajo el resumen */}
+              <View style={{ marginTop: 20, marginBottom: 8 }}>
+                <RizomaButton
+                  label={`Finalizar pedido · ${formatPrice(payable)}`}
+                  onPress={goToCheckout}
+                />
+              </View>
+            </ScrollView>
           </View>
         )}
-    </Screen>
+      </View>
+    </SafeAreaView>
   );
 }
