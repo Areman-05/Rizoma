@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +21,7 @@ import {
   getGoogleRedirectUriOptions,
 } from "@/src/config/googleAuth";
 import { useAuth, userFromGoogleIdToken } from "@/src/context/AuthContext";
+import { login as loginLocal, UserStoreError } from "@/src/services/userStore";
 import { saveProfileAvatar, saveProfileName } from "@/src/store/persistence";
 import { colors } from "@/src/theme/tokens";
 
@@ -149,34 +151,31 @@ export default function LoginScreen() {
 
   const onSubmit = () => {
     if (busy) return;
-    const trimmed = email.trim();
-    if (!trimmed || !trimmed.includes("@")) {
-      setError("Introduce un correo electrónico válido.");
-      return;
-    }
-    if (!password.trim()) {
-      setError("Introduce tu contraseña.");
-      return;
-    }
     setBusy(true);
     setError(null);
-    const mockName = trimmed.split("@")[0] || "Usuario";
     void (async () => {
       try {
-        await signIn({
-          id: `email:${trimmed.toLowerCase()}`,
-          email: trimmed,
-          name: mockName,
-          provider: "email",
-        });
-        await saveProfileName(mockName);
+        const user = await loginLocal(email, password);
+        await signIn(user);
+        await saveProfileName(user.name);
         enterApp();
-      } catch {
-        setError("No se pudo guardar la sesión. Inténtalo de nuevo.");
+      } catch (err) {
+        const message =
+          err instanceof UserStoreError
+            ? err.message
+            : "No se pudo iniciar sesión. Inténtalo de nuevo.";
+        setError(message);
       } finally {
         setBusy(false);
       }
     })();
+  };
+
+  const onForgotPassword = () => {
+    Alert.alert(
+      "Recuperar contraseña",
+      "En la demo no hay recuperación real. Crea una cuenta nueva o continúa como invitado.",
+    );
   };
 
   const onGoogle = async () => {
@@ -200,34 +199,63 @@ export default function LoginScreen() {
     <Screen scroll>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         <Animated.View
           style={{
             opacity: formOpacity,
             transform: [{ translateY: formTranslate }],
+            paddingBottom: 24,
           }}
         >
-          <View className="mt-6 items-center">
-            <View className="mb-5 h-16 w-16 items-center justify-center rounded-full bg-rizoma-brandSoft">
+          <View style={{ marginTop: 24, alignItems: "center" }}>
+            <View
+              style={{
+                marginBottom: 20,
+                height: 64,
+                width: 64,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 999,
+                backgroundColor: colors.brandSoft,
+              }}
+            >
               <RizomaLogo size="md" showWordmark={false} />
             </View>
-            <Text className="text-3xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
+            <Text
+              style={{
+                fontSize: 30,
+                color: colors.black,
+                fontFamily: "Inter_700Bold",
+              }}
+            >
               Rizoma
             </Text>
             <Text
-              className="mt-2 px-4 text-center text-base leading-6 text-rizoma-secondaryText"
-              style={{ fontFamily: "Inter_400Regular" }}
+              style={{
+                marginTop: 8,
+                paddingHorizontal: 16,
+                textAlign: "center",
+                fontSize: 15,
+                lineHeight: 22,
+                color: colors.secondaryText,
+                fontFamily: "Inter_400Regular",
+              }}
             >
-              Entra para sincronizar favoritos, pedidos y Mi Jardín.
+              Entra con tu cuenta o con Google. También puedes continuar como invitado.
             </Text>
           </View>
 
-          <View className="mt-10 gap-3.5">
+          <View style={{ marginTop: 32, gap: 14 }}>
             <View>
               <Text
-                className="mb-2 ml-1 text-sm text-rizoma-secondaryText"
-                style={{ fontFamily: "Inter_500Medium" }}
+                style={{
+                  marginBottom: 8,
+                  marginLeft: 4,
+                  fontSize: 14,
+                  color: colors.secondaryText,
+                  fontFamily: "Inter_500Medium",
+                }}
               >
                 Correo electrónico
               </Text>
@@ -244,15 +272,29 @@ export default function LoginScreen() {
                 textContentType="emailAddress"
                 placeholderTextColor={colors.grayText}
                 accessibilityLabel="Correo electrónico"
-                className="rounded-2xl border border-rizoma-border bg-white px-4 py-4 text-base text-rizoma-black"
-                style={{ fontFamily: "Inter_500Medium" }}
+                style={{
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  backgroundColor: colors.white,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: colors.black,
+                  fontFamily: "Inter_500Medium",
+                }}
               />
             </View>
 
             <View>
               <Text
-                className="mb-2 ml-1 text-sm text-rizoma-secondaryText"
-                style={{ fontFamily: "Inter_500Medium" }}
+                style={{
+                  marginBottom: 8,
+                  marginLeft: 4,
+                  fontSize: 14,
+                  color: colors.secondaryText,
+                  fontFamily: "Inter_500Medium",
+                }}
               >
                 Contraseña
               </Text>
@@ -267,49 +309,113 @@ export default function LoginScreen() {
                 secureTextEntry
                 textContentType="password"
                 accessibilityLabel="Contraseña"
-                className="rounded-2xl border border-rizoma-border bg-white px-4 py-4 text-base text-rizoma-black"
-                style={{ fontFamily: "Inter_500Medium" }}
+                style={{
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  backgroundColor: colors.white,
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  fontSize: 16,
+                  color: colors.black,
+                  fontFamily: "Inter_500Medium",
+                }}
               />
             </View>
 
             <Pressable
-              onPress={() =>
-                setError("Demo: la recuperación de contraseña no está conectada.")
-              }
+              onPress={onForgotPassword}
               accessibilityRole="button"
               accessibilityLabel="¿Olvidaste tu contraseña?"
-              className="self-end px-1 py-1"
-              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+              style={({ pressed }) => ({
+                alignSelf: "flex-end",
+                paddingHorizontal: 4,
+                paddingVertical: 4,
+                opacity: pressed ? 0.7 : 1,
+              })}
             >
-              <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: colors.brand,
+                  fontFamily: "Inter_600SemiBold",
+                }}
+              >
                 ¿Olvidaste tu contraseña?
               </Text>
             </Pressable>
 
             {error ? (
-              <View className="rounded-2xl px-4 py-3" style={{ backgroundColor: "#FEF2F2" }}>
-                <Text className="text-sm text-rizoma-red" style={{ fontFamily: "Inter_500Medium" }}>
+              <View
+                style={{
+                  borderRadius: 16,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  backgroundColor: "#FEF2F2",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: colors.red,
+                    fontFamily: "Inter_500Medium",
+                  }}
+                >
                   {error}
                 </Text>
               </View>
             ) : null}
-          </View>
 
-          <View className="mt-6 gap-3">
+            {/* CTA primario: estilos inline para que no se pierda en el emulador */}
             <RizomaButton
               label={busy ? "Entrando..." : "Iniciar sesión"}
               onPress={onSubmit}
+              disabled={busy}
             />
 
-            <View className="my-1 flex-row items-center gap-3">
-              <View className="h-px flex-1 bg-rizoma-border" />
+            <Pressable
+              onPress={() => router.push("/register")}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel="Crear cuenta"
+              style={({ pressed }) => ({
+                alignItems: "center",
+                paddingVertical: 10,
+                opacity: pressed || busy ? 0.7 : 1,
+              })}
+            >
               <Text
-                className="text-xs text-rizoma-grayText"
-                style={{ fontFamily: "Inter_500Medium" }}
+                style={{
+                  fontSize: 15,
+                  color: colors.brand,
+                  fontFamily: "Inter_600SemiBold",
+                }}
+              >
+                Crear cuenta
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={{ marginTop: 20, gap: 12 }}>
+            <View
+              style={{
+                marginVertical: 4,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: colors.grayText,
+                  fontFamily: "Inter_500Medium",
+                }}
               >
                 o continúa con
               </Text>
-              <View className="h-px flex-1 bg-rizoma-border" />
+              <View style={{ height: 1, flex: 1, backgroundColor: colors.border }} />
             </View>
 
             <Pressable
@@ -317,14 +423,25 @@ export default function LoginScreen() {
               disabled={busy || !request}
               accessibilityRole="button"
               accessibilityLabel="Continuar con Google"
-              className="items-center rounded-full border border-rizoma-border bg-white px-5 py-4"
               style={({ pressed }) => ({
+                alignItems: "center",
+                borderRadius: 999,
+                borderWidth: 1,
+                borderColor: colors.border,
+                backgroundColor: colors.white,
+                minHeight: 56,
+                paddingHorizontal: 20,
+                paddingVertical: 16,
+                justifyContent: "center",
                 opacity: pressed || busy || !request ? 0.75 : 1,
               })}
             >
               <Text
-                className="text-base text-rizoma-black"
-                style={{ fontFamily: "Inter_600SemiBold" }}
+                style={{
+                  fontSize: 16,
+                  color: colors.black,
+                  fontFamily: "Inter_600SemiBold",
+                }}
               >
                 {busy ? "Conectando con Google..." : "Continuar con Google"}
               </Text>
@@ -336,20 +453,36 @@ export default function LoginScreen() {
             disabled={busy}
             accessibilityRole="button"
             accessibilityLabel="Continuar como invitado"
-            className="mt-6 items-center py-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            style={({ pressed }) => ({
+              marginTop: 20,
+              alignItems: "center",
+              paddingVertical: 8,
+              opacity: pressed ? 0.7 : 1,
+            })}
           >
-            <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_600SemiBold" }}>
+            <Text
+              style={{
+                fontSize: 14,
+                color: colors.brand,
+                fontFamily: "Inter_600SemiBold",
+              }}
+            >
               Continuar como invitado
             </Text>
           </Pressable>
 
           <Text
-            className="mt-8 text-center text-xs leading-5 text-rizoma-grayText"
-            style={{ fontFamily: "Inter_400Regular" }}
+            style={{
+              marginTop: 24,
+              textAlign: "center",
+              fontSize: 12,
+              lineHeight: 18,
+              color: colors.grayText,
+              fontFamily: "Inter_400Regular",
+            }}
           >
             Al continuar aceptas los términos de la demo Rizoma.{"\n"}
-            Google Sign-In es real; el acceso por email/contraseña es simulado.
+            Google Sign-In es real; las cuentas email se guardan solo en este dispositivo.
           </Text>
         </Animated.View>
       </KeyboardAvoidingView>

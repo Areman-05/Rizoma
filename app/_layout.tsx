@@ -54,6 +54,7 @@ export default function RootLayout() {
                     <Stack.Screen name="search" />
                     <Stack.Screen name="onboarding" />
                     <Stack.Screen name="login" />
+                    <Stack.Screen name="register" />
                     <Stack.Screen name="match" />
                     <Stack.Screen name="garden" />
                     <Stack.Screen name="notifications" />
