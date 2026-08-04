@@ -1,4 +1,4 @@
-import { Link, router, type Href } from "expo-router";
+import { Link, router, useNavigation, type Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -244,21 +244,32 @@ function EditProfileSheet({
   };
 
   return (
-    <Modal visible={modalMounted} transparent animationType="none" onRequestClose={onClose}>
-      <View className="flex-1 justify-end">
+    <Modal
+      visible={modalMounted}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View className="flex-1 justify-end" style={{ backgroundColor: "transparent" }}>
         <Animated.View
           pointerEvents="none"
           style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: "rgba(0,0,0,0.4)", opacity: backdropOpacity },
+            { backgroundColor: "rgba(0,0,0,0.45)", opacity: backdropOpacity },
           ]}
         />
-        <Pressable className="flex-1" onPress={onClose} accessibilityLabel="Cerrar editar perfil" />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityLabel="Cerrar editar perfil"
+        />
         <Animated.View
           className="max-h-[88%] rounded-t-3xl bg-white"
           style={{
             paddingBottom: Math.max(insets.bottom, 16) + 8,
             transform: [{ translateY: sheetTranslate }],
+            zIndex: 1,
           }}
         >
           <View className="items-center pt-3">
@@ -386,7 +397,16 @@ function EditProfileSheet({
   );
 }
 
+const PROFILE_TAB_BAR_STYLE = {
+  backgroundColor: colors.white,
+  borderTopColor: colors.border,
+  height: 68,
+  paddingBottom: 10,
+  paddingTop: 8,
+} as const;
+
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const { user, signOut } = useAuth();
   const { cartCount, wishlist, orders } = useShop();
   const { garden } = useGarden();
@@ -401,6 +421,15 @@ export default function ProfileScreen() {
     loadProfileName().then(setName);
     loadProfileAvatar().then(setAvatarUri);
   }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: editSheetOpen ? { display: "none" } : { ...PROFILE_TAB_BAR_STYLE },
+    });
+    return () => {
+      navigation.setOptions({ tabBarStyle: { ...PROFILE_TAB_BAR_STYLE } });
+    };
+  }, [editSheetOpen, navigation]);
 
   useEffect(() => {
     if (!user) return;

@@ -16,8 +16,8 @@ import { difficultyLabel } from "@/src/utils/plantLabels";
 import { colors } from "@/src/theme/tokens";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-/** Altura del chrome sticky (sin safe-area): fila Jardín + dock CTA. */
-const BOTTOM_BAR_CONTENT_HEIGHT = 96;
+/** Altura del dock CTA (qty + acciones), sin safe-area. */
+const BOTTOM_BAR_CONTENT_HEIGHT = 72;
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -200,12 +200,13 @@ export default function PlantDetailScreen() {
       />
 
       <View
-        className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-2.5"
+        className="absolute bottom-0 left-0 right-0 border-t border-rizoma-border bg-white px-[13px] pt-3"
         style={{ paddingBottom: bottomBarPadding }}
       >
-        <View className="mb-2.5 flex-row items-center justify-end px-0.5">
+        <View className="flex-row items-center gap-2.5">
           <Pressable
             accessibilityLabel={inGarden ? "Quitar de Mi Jardín" : "Guardar en Mi Jardín"}
+            accessibilityState={{ selected: inGarden }}
             onPress={() => {
               if (inGarden) {
                 removeFromGarden(plant.id);
@@ -215,21 +216,18 @@ export default function PlantDetailScreen() {
               const added = addToGarden(plant);
               showToast(added ? "Guardada en Mi Jardín" : "Ya está en Mi Jardín", plant.name);
             }}
-            className="flex-row items-center gap-1.5 py-1"
-            hitSlop={4}
-            style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}
+            className={`h-12 w-12 items-center justify-center rounded-full ${
+              inGarden ? "bg-rizoma-brand" : "bg-rizoma-brandSoft"
+            }`}
+            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
           >
-            <Leaf size={15} color={colors.brand} fill={inGarden ? colors.brand : "transparent"} />
-            <Text
-              className={`text-[11px] ${inGarden ? "text-rizoma-brand" : "text-rizoma-secondaryText"}`}
-              style={{ fontFamily: "Inter_500Medium" }}
-            >
-              {inGarden ? "En Mi Jardín" : "Mi Jardín"}
-            </Text>
+            <Leaf
+              size={20}
+              color={inGarden ? colors.white : colors.brand}
+              fill={inGarden ? colors.white : "transparent"}
+            />
           </Pressable>
-        </View>
 
-        <View className="flex-row items-center gap-2.5">
           <View className="h-12 flex-row items-center rounded-full bg-rizoma-brandSoft px-1">
             <Pressable
               accessibilityLabel="Reducir cantidad"
