@@ -63,11 +63,14 @@ export default function ExploreScreen() {
               {plants.length} plantas · filtra por categoría
             </Text>
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingRight: 8, alignItems: "flex-start" }}
-              className="mb-3"
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                width: "100%",
+                marginBottom: 12,
+              }}
             >
               <Pressable
                 onPress={() => setShopFilter(null)}
@@ -75,7 +78,7 @@ export default function ExploreScreen() {
                 accessibilityState={{ selected: shopFilter === null }}
                 accessibilityLabel="Todas las categorías"
                 className="items-center"
-                style={{ width: 72 }}
+                style={{ flex: 1, alignItems: "center" }}
               >
                 <View
                   className={`h-11 w-11 items-center justify-center rounded-full ${
@@ -102,11 +105,12 @@ export default function ExploreScreen() {
                   key={item.id}
                   category={item}
                   compact
+                  distributed
                   active={shopFilter === item.id}
                   onPress={onShopPress}
                 />
               ))}
-            </ScrollView>
+            </View>
 
             <Pressable
               onPress={() => setShowExtraFilters((v) => !v)}
