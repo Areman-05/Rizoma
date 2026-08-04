@@ -14,7 +14,7 @@ import { getRelatedPlants } from "@/src/utils/relatedPlants";
 import { formatPrice } from "@/src/utils/pricing";
 import { difficultyLabel } from "@/src/utils/plantLabels";
 import { colors } from "@/src/theme/tokens";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** Altura del chrome sticky (sin safe-area): fila Jardín + dock CTA. */
 const BOTTOM_BAR_CONTENT_HEIGHT = 96;
@@ -54,7 +54,7 @@ export default function PlantDetailScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "left", "right"]}>
+    <Screen padded={false}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: bottomBarHeight + 20 }}
@@ -273,6 +273,6 @@ export default function PlantDetailScreen() {
           </Pressable>
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }

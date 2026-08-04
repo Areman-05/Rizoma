@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Package, Send } from "lucide-react-native";
+import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { quickSuggestions, type ChatMessage } from "@/src/data/chat";
 import { useChat } from "@/src/store/ChatContext";
@@ -78,20 +79,22 @@ export default function ChatThreadScreen() {
 
   if (!hydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-white" style={{ paddingTop: insets.top }}>
-        <ActivityIndicator color={colors.brand} />
-      </View>
+      <Screen>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      </Screen>
     );
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+    <Screen>
       <KeyboardAvoidingView
         className="flex-1"
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={0}
       >
-        <View className="flex-1 px-[13px] pt-2">
+        <View className="flex-1">
           <ScreenHeader title={meta.title} showBell={false} />
           <Text
             className="-mt-2 mb-3 text-center text-xs text-rizoma-secondaryText"
@@ -216,6 +219,6 @@ export default function ChatThreadScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Screen>
   );
 }

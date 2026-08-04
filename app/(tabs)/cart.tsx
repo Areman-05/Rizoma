@@ -1,8 +1,8 @@
 import { router } from "expo-router";
 import { Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
 import { useShop } from "@/src/store/ShopContext";
+import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { EmptyState, emptyIconTone } from "@/src/components/ui/EmptyState";
 import { formatPrice } from "@/src/utils/pricing";
@@ -27,11 +27,7 @@ export default function CartScreen() {
   };
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.white, overflow: "visible" }}
-      edges={["top", "left", "right"]}
-    >
-      <View style={{ flex: 1, paddingHorizontal: 13, paddingTop: 8, overflow: "visible" }}>
+    <Screen style={{ overflow: "visible" }}>
         <ScreenHeader title="Carrito" showBack={false} showBell={false} />
 
         {cart.length === 0 ? (
@@ -244,7 +240,6 @@ export default function CartScreen() {
             </View>
           </View>
         )}
-      </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
