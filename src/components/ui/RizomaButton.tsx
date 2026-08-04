@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
+import { colors } from "@/src/theme/tokens";
 
 interface RizomaButtonProps {
   label: string;
@@ -109,32 +110,32 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   shellPrimary: {
-    backgroundColor: "#01B763",
-    shadowColor: "#01B763",
+    backgroundColor: colors.brand,
+    shadowColor: colors.brand,
     shadowOpacity: 0.32,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
     elevation: 5,
   },
   shellDanger: {
-    backgroundColor: "#EF4444",
-    shadowColor: "#EF4444",
+    backgroundColor: colors.danger,
+    shadowColor: colors.danger,
     shadowOpacity: 0.22,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
   shellSecondary: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.white,
     borderWidth: 1.5,
-    borderColor: "#01B763",
+    borderColor: colors.brand,
   },
   shellGoogle: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: "rgba(1, 183, 99, 0.12)",
     borderRadius: 999,
-    shadowColor: "#0A5C3A",
+    shadowColor: colors.leafDeep,
     shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
@@ -174,10 +175,10 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   labelOnColor: {
-    color: "#FFFFFF",
+    color: colors.white,
   },
   labelSecondary: {
-    color: "#01B763",
+    color: colors.brand,
   },
   labelGoogle: {
     color: "#3C4043",

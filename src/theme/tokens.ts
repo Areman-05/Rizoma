@@ -1,24 +1,31 @@
+import palette from "./palette";
+
 export const colors = {
-  brand: "#01B763",
-  brandSoft: "#E8F8F0",
-  red: "#EF4444",
-  yellow: "#F1B826",
-  black: "#2B2B2B",
-  white: "#FFFFFF",
-  gray: "#EEF2F6",
-  grayText: "#9CA3AF",
-  border: "#E5E7EB",
+  brand: palette.brand,
+  brandSoft: palette.brandSoft,
+  leafDeep: palette.leafDeep,
+  wordmark: palette.wordmark,
+  mintWash: palette.mintWash,
+  mintMid: palette.mintMid,
+  dangerSoft: palette.dangerSoft,
+  red: palette.red,
+  yellow: palette.yellow,
+  black: palette.black,
+  white: palette.white,
+  gray: palette.gray,
+  grayText: palette.grayText,
+  border: palette.border,
   // legacy aliases used across older screens during migration
-  canvas: "#FFFFFF",
-  canvasSoft: "#EEF2F6",
-  primary: "#01B763",
-  secondaryText: "#6B7280",
-  accent: "#01B763",
-  accentSoft: "#E8F8F0",
-  card: "#FFFFFF",
-  danger: "#EF4444",
-  success: "#01B763",
-};
+  canvas: palette.canvas,
+  canvasSoft: palette.canvasSoft,
+  primary: palette.primary,
+  secondaryText: palette.secondaryText,
+  accent: palette.accent,
+  accentSoft: palette.accentSoft,
+  card: palette.card,
+  danger: palette.danger,
+  success: palette.success,
+} as const;
 
 export const spacing = {
   xs: 4,
@@ -52,7 +59,7 @@ export const typography = {
 
 export const elevation = {
   soft: {
-    shadowColor: "#2B2B2B",
+    shadowColor: colors.black,
     shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },

@@ -6,11 +6,11 @@ import { colors, radii, spacing, typography } from "@/src/theme/tokens";
 export const authStyles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#E8F8EF",
+    backgroundColor: colors.brandSoft,
   },
   root: {
     flex: 1,
-    backgroundColor: "#E8F8EF",
+    backgroundColor: colors.brandSoft,
   },
   decor: {
     ...StyleSheet.absoluteFill,
@@ -179,7 +179,7 @@ export const authStyles = StyleSheet.create({
     borderRadius: radii.lg,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FEF2F2",
+    backgroundColor: colors.dangerSoft,
     borderWidth: 1,
     borderColor: "rgba(239, 68, 68, 0.2)",
   },
@@ -197,7 +197,7 @@ export const authStyles = StyleSheet.create({
     gap: 16,
     padding: 18,
     borderRadius: radii.xxl,
-    backgroundColor: "#F2FBF6",
+    backgroundColor: colors.mintWash,
     borderWidth: 1,
     borderColor: "rgba(1, 183, 99, 0.08)",
   },

@@ -7,7 +7,7 @@ export function AuthGreenhouseDecor() {
   return (
     <View style={styles.root} pointerEvents="none" collapsable={false}>
       <LinearGradient
-        colors={["#E8F8EF", "#F5FCF8", "#FFFFFF"]}
+        colors={[colors.brandSoft, colors.mintMid, colors.white]}
         locations={[0, 0.45, 1]}
         style={styles.wash}
         pointerEvents="none"

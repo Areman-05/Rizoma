@@ -1,6 +1,7 @@
 import { Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { brand } from "@/src/brand/rizoma";
+import { colors } from "@/src/theme/tokens";
 
 interface RizomaLogoProps {
   size?: "sm" | "md" | "lg" | "hero";
@@ -14,11 +15,11 @@ const sizeMap = {
   hero: { icon: 96, text: 40 },
 };
 
-/** Verdes tipo Leafy (captura Behance). */
+/** Verdes del logo — alias de la paleta única. */
 export const leafyLogoColors = {
-  leaf: "#01B763",
-  leafDeep: "#0A5C3A",
-  wordmark: "#0D3D2A",
+  leaf: colors.brand,
+  leafDeep: colors.leafDeep,
+  wordmark: colors.wordmark,
 } as const;
 
 /**

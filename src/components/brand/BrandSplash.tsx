@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { brand } from "@/src/brand/rizoma";
 import { RizomaMark, leafyLogoColors } from "@/src/components/brand/RizomaLogo";
+import { colors } from "@/src/theme/tokens";
 
 interface BrandSplashProps {
   animated?: boolean;
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     fontSize: 16,
     lineHeight: 24,
-    color: "#6B7280",
+    color: colors.secondaryText,
     textAlign: "center",
     maxWidth: 280,
   },
