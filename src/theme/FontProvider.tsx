@@ -10,9 +10,10 @@ import {
 } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { BrandSplash } from "@/src/components/brand/BrandSplash";
+import { colors } from "@/src/theme/tokens";
 
-const BRAND_SPLASH_MS = 3800;
-const EXIT_FADE_MS = 500;
+const BRAND_SPLASH_MS = 4600;
+const EXIT_FADE_MS = 520;
 
 /** Evita re-mostrar el splash en cada Fast Refresh / remount de RootLayout. */
 let brandSplashCompleted = false;
@@ -77,7 +78,7 @@ export function FontProvider({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.white,
   },
   fill: {
     flex: 1,
