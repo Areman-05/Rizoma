@@ -5,7 +5,6 @@ import { Leaf, ScanLine, Sun } from "lucide-react-native";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { Screen } from "@/src/components/ui/Screen";
-import { useAuth } from "@/src/context/AuthContext";
 import { useOnboarding } from "@/src/store/OnboardingContext";
 import { colors } from "@/src/theme/tokens";
 
@@ -33,7 +32,6 @@ export default function OnboardingScreen() {
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const { completeOnboarding } = useOnboarding();
-  const { user } = useAuth();
   const slide = slides[index];
   const isLast = index === slides.length - 1;
   const Icon = slide.Icon;
@@ -93,8 +91,7 @@ export default function OnboardingScreen() {
     setBusy(true);
     try {
       await completeOnboarding();
-      // Sin sesión → login; con sesión (p. ej. guía desde perfil) → tabs.
-      router.replace(user ? "/(tabs)" : "/login");
+      router.replace("/(tabs)");
     } finally {
       setBusy(false);
     }
@@ -152,13 +149,7 @@ export default function OnboardingScreen() {
           </View>
           <RizomaButton
             label={
-              busy
-                ? "Continuando..."
-                : isLast
-                  ? user
-                    ? "Entrar en Rizoma"
-                    : "Crear cuenta o entrar"
-                  : "Siguiente"
+              busy ? "Continuando..." : isLast ? "Entrar en Rizoma" : "Siguiente"
             }
             onPress={async () => {
               if (busy) return;
