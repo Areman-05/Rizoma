@@ -9,6 +9,7 @@ import {
 } from "react";
 import { Plant } from "@/src/types/catalog";
 import { normalizeOrderStatus, Order } from "@/src/types/orders";
+import { CartLine } from "@/src/types/shop";
 import {
   loadOrders,
   loadShopState,
@@ -17,12 +18,10 @@ import {
   saveWishlist,
   STORAGE_LOAD_TIMEOUT_MS,
 } from "@/src/store/persistence";
+import { calculateCartCount, calculateCartTotal } from "@/src/store/shop";
 import { getPlantById } from "@/src/data/plants";
 
-export interface CartLine {
-  plant: Plant;
-  quantity: number;
-}
+export type { CartLine } from "@/src/types/shop";
 
 interface ShopContextValue {
   cart: CartLine[];
@@ -109,8 +108,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   }, [orders, canPersist]);
 
   const value = useMemo<ShopContextValue>(() => {
-    const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
-    const cartTotal = cart.reduce((sum, line) => sum + line.plant.price * line.quantity, 0);
+    const cartCount = calculateCartCount(cart);
+    const cartTotal = calculateCartTotal(cart);
 
     return {
       cart,

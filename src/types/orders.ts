@@ -53,6 +53,10 @@ export function trackingStepIndex(status: OrderStatus): number {
 }
 
 export function createOrderId() {
-  const suffix = Math.floor(1000 + Math.random() * 9000);
-  return `RZ-${suffix}`;
+  const time = Date.now().toString(36).toUpperCase();
+  const rand = Math.floor(Math.random() * 36 ** 2)
+    .toString(36)
+    .toUpperCase()
+    .padStart(2, "0");
+  return `RZ-${time}${rand}`;
 }

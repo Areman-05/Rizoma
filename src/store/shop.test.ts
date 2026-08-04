@@ -1,12 +1,7 @@
-import { calculateCartCount, calculateCartTotal, cartTotal } from "./shop";
-import { plants } from "@/src/data/plants";
-import { searchPlants } from "@/src/data/plants";
+import { calculateCartCount, calculateCartTotal } from "./shop";
+import { plants, searchPlants } from "@/src/data/plants";
 
 describe("shop store helpers", () => {
-  it("computes a positive cart total from seed data", () => {
-    expect(cartTotal()).toBeGreaterThan(0);
-  });
-
   it("calculates totals and counts from cart lines", () => {
     const cart = [
       { plant: plants[0], quantity: 2 },
@@ -14,6 +9,8 @@ describe("shop store helpers", () => {
     ];
     expect(calculateCartCount(cart)).toBe(3);
     expect(calculateCartTotal(cart)).toBeCloseTo(plants[0].price * 2 + plants[1].price);
+    expect(calculateCartCount([])).toBe(0);
+    expect(calculateCartTotal([])).toBe(0);
   });
 });
 
