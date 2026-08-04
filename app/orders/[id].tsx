@@ -1,18 +1,18 @@
+import { useEffect, useRef } from "react";
 import { Image, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { MapPin, Package, Truck } from "lucide-react-native";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenHeader } from "@/src/components/ui/ScreenHeader";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import { EmptyState } from "@/src/components/ui/EmptyState";
+import { OrderTrackingTimeline } from "@/src/components/orders/OrderTrackingTimeline";
 import { useShop } from "@/src/store/ShopContext";
 import {
+  ORDER_AUTO_ADVANCE_MS,
   normalizeOrderStatus,
   trackingStepIndex,
-  trackingSteps,
 } from "@/src/types/orders";
 import { formatPrice } from "@/src/utils/pricing";
-import { colors } from "@/src/theme/tokens";
 
 const paymentLabels = {
   card: "Tarjeta · **** 4242",
@@ -26,6 +26,36 @@ export default function OrderDetailScreen() {
   const orderId = Array.isArray(id) ? id[0] : id;
   const { orders, cancelOrder, advanceOrderStatus } = useShop();
   const order = orders.find((item) => item.id === orderId);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const status = order ? normalizeOrderStatus(order.status) : null;
+
+  // Auto-avance demo: un paso cada intervalo
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (!order) return;
+
+    const current = normalizeOrderStatus(order.status);
+    if (current === "cancelled" || current === "delivered") return;
+
+    const idx = trackingStepIndex(order.status);
+    const delay = ORDER_AUTO_ADVANCE_MS[idx];
+    if (delay == null) return;
+
+    timerRef.current = setTimeout(() => {
+      advanceOrderStatus(order.id);
+    }, delay);
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [order?.id, order?.status, advanceOrderStatus]);
 
   if (!order) {
     return (
@@ -41,76 +71,21 @@ export default function OrderDetailScreen() {
     );
   }
 
-  const status = normalizeOrderStatus(order.status);
-  const stepIndex = trackingStepIndex(order.status);
-  const canAdvance = status !== "cancelled" && status !== "delivered";
   const canCancel = status !== "cancelled" && status !== "delivered";
+
+  const handleCancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    cancelOrder(order.id);
+  };
 
   return (
     <Screen scroll>
       <ScreenHeader title={order.id} />
 
-      <View className="rounded-3xl border border-rizoma-border bg-white p-5">
-        <Text className="text-sm text-rizoma-secondaryText" style={{ fontFamily: "Inter_500Medium" }}>
-          Seguimiento
-        </Text>
-        <Text className="mt-1 text-2xl text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-          {status === "cancelled"
-            ? "Pedido cancelado"
-            : trackingSteps[Math.max(0, stepIndex)]?.title ?? "En proceso"}
-        </Text>
-
-        <View className="mt-5 flex-row items-center justify-between px-2">
-          <Package size={22} color={stepIndex >= 0 ? colors.brand : colors.grayText} />
-          <View
-            className={`mx-2 h-1 flex-1 rounded-full ${stepIndex >= 1 ? "bg-rizoma-brand" : "bg-rizoma-gray"}`}
-          />
-          <Truck size={22} color={stepIndex >= 1 ? colors.brand : colors.grayText} />
-          <View
-            className={`mx-2 h-1 flex-1 rounded-full ${stepIndex >= 2 ? "bg-rizoma-brand" : "bg-rizoma-gray"}`}
-          />
-          <MapPin size={22} color={stepIndex >= 3 ? colors.brand : colors.grayText} />
-        </View>
-
-        <View className="mt-6 gap-4">
-          {trackingSteps.map((step, index) => {
-            const done = status !== "cancelled" && index <= stepIndex;
-            const latest = status !== "cancelled" && index === stepIndex;
-            return (
-              <View key={step.id} className="flex-row gap-3">
-                <View
-                  className={`mt-1 h-4 w-4 rounded-full ${done ? "bg-rizoma-brand" : "border border-rizoma-border bg-white"}`}
-                />
-                <View className="flex-1">
-                  <View className="flex-row items-center gap-2">
-                    <Text className="text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
-                      {step.title}
-                    </Text>
-                    {latest ? (
-                      <View className="rounded-full bg-rizoma-yellow px-2 py-0.5">
-                        <Text className="text-[10px] text-rizoma-black" style={{ fontFamily: "Inter_600SemiBold" }}>
-                          Actual
-                        </Text>
-                      </View>
-                    ) : null}
-                  </View>
-                  <Text className="text-xs text-rizoma-secondaryText" style={{ fontFamily: "Inter_400Regular" }}>
-                    {index === 0
-                      ? "Pedido listo en vivero"
-                      : index === 1
-                        ? "Salida del almacén"
-                        : index === 2
-                          ? order.delivery === "express"
-                            ? "24-48h restantes"
-                            : "3-5 días restantes"
-                          : "En tu dirección"}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      </View>
+      <OrderTrackingTimeline status={order.status} express={order.delivery === "express"} />
 
       <View className="mt-4 rounded-3xl border border-rizoma-border bg-white p-5">
         <Text className="mb-3 text-rizoma-black" style={{ fontFamily: "Inter_700Bold" }}>
@@ -158,21 +133,12 @@ export default function OrderDetailScreen() {
         </View>
       </View>
 
-      <View className="mt-5 gap-3 mb-4">
-        {canAdvance ? (
-          <RizomaButton
-            label="Avanzar estado (demo)"
-            onPress={() => advanceOrderStatus(order.id)}
-          />
-        ) : null}
+      <View className="mb-4 mt-5 gap-3">
         {canCancel ? (
-          <RizomaButton
-            label="Cancelar pedido"
-            variant="danger"
-            onPress={() => cancelOrder(order.id)}
-          />
+          <RizomaButton label="Cancelar pedido" variant="danger" onPress={handleCancel} />
         ) : null}
         <RizomaButton label="Seguir comprando" onPress={() => router.push("/(tabs)/explore")} />
+        <RizomaButton label="Ver todos los pedidos" variant="secondary" onPress={() => router.push("/orders")} />
       </View>
     </Screen>
   );

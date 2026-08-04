@@ -32,17 +32,29 @@ function OrderCard({ order }: { order: Order }) {
       onPress={() => router.push(`/orders/${order.id}`)}
       className="mb-4 rounded-3xl border border-rizoma-border bg-white p-4"
       accessibilityRole="button"
-      accessibilityLabel={`Pedido ${order.id}`}
+      accessibilityLabel={`Pedido ${order.id}, ${statusLabel(order)}`}
     >
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="text-sm text-rizoma-brand" style={{ fontFamily: "Inter_700Bold" }}>
           {order.id}
         </Text>
         <View
-          className={`rounded-full px-2.5 py-1 ${status === "cancelled" ? "bg-rizoma-gray" : "bg-rizoma-brandSoft"}`}
+          className={`rounded-full px-2.5 py-1 ${
+            status === "cancelled"
+              ? "bg-rizoma-gray"
+              : status === "delivered"
+                ? "bg-rizoma-brand"
+                : "bg-rizoma-brandSoft"
+          }`}
         >
           <Text
-            className={`text-[11px] ${status === "cancelled" ? "text-rizoma-secondaryText" : "text-rizoma-brand"}`}
+            className={`text-[11px] ${
+              status === "cancelled"
+                ? "text-rizoma-secondaryText"
+                : status === "delivered"
+                  ? "text-white"
+                  : "text-rizoma-brand"
+            }`}
             style={{ fontFamily: "Inter_600SemiBold" }}
           >
             {statusLabel(order)}
@@ -69,7 +81,9 @@ function OrderCard({ order }: { order: Order }) {
           {trackingSteps.map((step, index) => (
             <View
               key={step.id}
-              className={`h-1.5 flex-1 rounded-full ${index <= stepIndex ? "bg-rizoma-brand" : "bg-rizoma-gray"}`}
+              className={`h-1.5 flex-1 rounded-full ${
+                index <= stepIndex ? "bg-rizoma-brand" : "bg-rizoma-gray"
+              }`}
             />
           ))}
         </View>
@@ -89,8 +103,8 @@ export default function OrdersScreen() {
           title="Sin pedidos todavía"
           description={
             cartCount > 0
-              ? "Tienes plantas en el carrito. Abre Carrito y pulsa «Ir a pagar» para confirmar el pedido demo."
-              : "Añade plantas al carrito, pulsa «Ir a pagar» y confirma el checkout demo."
+              ? "Tienes plantas en el carrito. Abre Carrito y pulsa «Finalizar pedido»."
+              : "Añade plantas al carrito, pulsa «Finalizar pedido» y confirma el pago."
           }
           actionLabel={cartCount > 0 ? "Ir al carrito" : "Explorar catálogo"}
           onActionPress={() =>
