@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DEFAULT_AVATAR_PRESET_ID, normalizeAvatarValue } from "@/src/components/profile/avatarPresets";
-import { CartLine } from "@/src/store/ShopContext";
+import { CartLine } from "@/src/types/shop";
 import { Plant } from "@/src/types/catalog";
 import { Order } from "@/src/types/orders";
 import { GardenPlant } from "@/src/types/garden";
@@ -118,16 +118,20 @@ export async function saveGarden(garden: GardenPlant[]) {
   await AsyncStorage.setItem(GARDEN_KEY, JSON.stringify(garden));
 }
 
-export async function hasCompletedOnboarding(): Promise<boolean> {
+function onboardingKeyForUser(userId: string) {
+  return `${ONBOARDING_KEY}.${userId}`;
+}
+
+export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
   try {
-    return (await AsyncStorage.getItem(ONBOARDING_KEY)) === "done";
+    return (await AsyncStorage.getItem(onboardingKeyForUser(userId))) === "done";
   } catch {
     return false;
   }
 }
 
-export async function markOnboardingDone() {
-  await AsyncStorage.setItem(ONBOARDING_KEY, "done");
+export async function markOnboardingDone(userId: string) {
+  await AsyncStorage.setItem(onboardingKeyForUser(userId), "done");
 }
 
 export async function loadProfileName(): Promise<string> {
