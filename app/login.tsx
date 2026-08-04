@@ -4,22 +4,11 @@ import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { Lock, Mail } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Alert,
-  Animated,
-  Easing,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { AuthGreenhouseDecor } from "@/src/components/auth/AuthGreenhouseDecor";
-import { RizomaMark, leafyLogoColors } from "@/src/components/brand/RizomaLogo";
+import { Alert, Keyboard, Pressable, Text, View } from "react-native";
+import { AuthBrandHeader } from "@/src/components/auth/AuthBrandHeader";
+import { AuthScreenShell } from "@/src/components/auth/AuthScreenShell";
+import { AuthTextField, authIconColor } from "@/src/components/auth/AuthTextField";
+import { authStyles } from "@/src/components/auth/authStyles";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
 import {
   getGoogleAuthRequestConfig,
@@ -28,7 +17,6 @@ import {
 import { useAuth, userFromGoogleIdToken } from "@/src/context/AuthContext";
 import { login as loginLocal, UserStoreError } from "@/src/services/userStore";
 import { saveProfileAvatar, saveProfileName } from "@/src/store/persistence";
-import { colors, radii, spacing, typography } from "@/src/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -43,51 +31,12 @@ export default function LoginScreen() {
   const [focused, setFocused] = useState<FieldKey | null>(null);
   const handledResponseKey = useRef<string | null>(null);
 
-  const brandOpacity = useRef(new Animated.Value(0)).current;
-  const brandTranslate = useRef(new Animated.Value(18)).current;
-  const formOpacity = useRef(new Animated.Value(0)).current;
-  const formTranslate = useRef(new Animated.Value(22)).current;
-
   const googleConfig = useMemo(() => getGoogleAuthRequestConfig(), []);
   const redirectOptions = useMemo(() => getGoogleRedirectUriOptions(), []);
   const [request, response, promptAsync] = Google.useAuthRequest(
     googleConfig,
     redirectOptions,
   );
-
-  useEffect(() => {
-    const ease = Easing.bezier(0.22, 1, 0.36, 1);
-    Animated.stagger(90, [
-      Animated.parallel([
-        Animated.timing(brandOpacity, {
-          toValue: 1,
-          duration: 480,
-          easing: ease,
-          useNativeDriver: true,
-        }),
-        Animated.timing(brandTranslate, {
-          toValue: 0,
-          duration: 480,
-          easing: ease,
-          useNativeDriver: true,
-        }),
-      ]),
-      Animated.parallel([
-        Animated.timing(formOpacity, {
-          toValue: 1,
-          duration: 440,
-          easing: ease,
-          useNativeDriver: true,
-        }),
-        Animated.timing(formTranslate, {
-          toValue: 0,
-          duration: 440,
-          easing: ease,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
-  }, [brandOpacity, brandTranslate, formOpacity, formTranslate]);
 
   useEffect(() => {
     if (!__DEV__) return;
@@ -100,9 +49,6 @@ export default function LoginScreen() {
     console.log(
       "[Rizoma Google Auth] Añade este redirect URI en Google Cloud Console (Web client → Authorized redirect URIs):",
       redirectUri,
-    );
-    console.log(
-      "[Rizoma Google Auth] También autoriza: rizoma://  y  rizoma://oauthredirect",
     );
   }, [request?.redirectUri]);
 
@@ -137,7 +83,8 @@ export default function LoginScreen() {
             await signIn(user);
             if (user.name) await saveProfileName(user.name);
             if (user.picture) await saveProfileAvatar(user.picture);
-            router.replace("/(tabs)");
+            // Index + AppGate eligen home u onboarding.
+            router.replace("/");
           } catch {
             setError("No se pudo guardar la sesión. Inténtalo de nuevo.");
           } finally {
@@ -172,10 +119,9 @@ export default function LoginScreen() {
     finish();
   }, [response, signIn]);
 
-  const clearError = () => setError(null);
-
   const onSubmit = () => {
     if (busy) return;
+    Keyboard.dismiss();
     setBusy(true);
     setError(null);
     void (async () => {
@@ -183,7 +129,7 @@ export default function LoginScreen() {
         const user = await loginLocal(email, password);
         await signIn(user);
         await saveProfileName(user.name);
-        router.replace("/(tabs)");
+        router.replace("/");
       } catch (err) {
         const message =
           err instanceof UserStoreError
@@ -209,379 +155,127 @@ export default function LoginScreen() {
       setError("Google Sign-In aún se está preparando. Espera un segundo.");
       return;
     }
+    Keyboard.dismiss();
     setBusy(true);
     setError(null);
     try {
       await promptAsync();
-      // El resultado se procesa en el effect de `response`.
     } catch {
       setBusy(false);
       setError("No se pudo abrir el flujo de Google. Inténtalo de nuevo.");
     }
   };
 
-  const iconColor = (key: FieldKey) =>
-    focused === key ? colors.brand : leafyLogoColors.leafDeep;
-
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
-      <AuthGreenhouseDecor />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.flex}
-      >
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          bounces
+    <AuthScreenShell>
+      <AuthBrandHeader />
+
+      <View style={authStyles.formBlock}>
+        <AuthTextField
+          label="Correo electrónico"
+          focused={focused === "email"}
+          icon={<Mail size={20} color={authIconColor(focused === "email")} strokeWidth={2.1} />}
+          value={email}
+          onChangeText={(value) => {
+            setEmail(value);
+            if (error) setError(null);
+          }}
+          onFocus={() => setFocused("email")}
+          onBlur={() => setFocused((f) => (f === "email" ? null : f))}
+          placeholder="tu@email.com"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          accessibilityLabel="Correo electrónico"
+          editable={!busy}
+        />
+
+        <AuthTextField
+          label="Contraseña"
+          spaced
+          focused={focused === "password"}
+          icon={<Lock size={20} color={authIconColor(focused === "password")} strokeWidth={2.1} />}
+          value={password}
+          onChangeText={(value) => {
+            setPassword(value);
+            if (error) setError(null);
+          }}
+          onFocus={() => setFocused("password")}
+          onBlur={() => setFocused((f) => (f === "password" ? null : f))}
+          placeholder="Tu contraseña"
+          secureTextEntry
+          autoComplete="password"
+          textContentType="password"
+          returnKeyType="done"
+          onSubmitEditing={onSubmit}
+          accessibilityLabel="Contraseña"
+          editable={!busy}
+        />
+
+        <Pressable
+          onPress={onForgotPassword}
+          accessibilityRole="button"
+          accessibilityLabel="¿Olvidaste tu contraseña?"
+          focusable={false}
+          style={({ pressed }) => [authStyles.forgot, { opacity: pressed ? 0.7 : 1 }]}
         >
-          <Animated.View
-            style={{
-              opacity: brandOpacity,
-              transform: [{ translateY: brandTranslate }],
-            }}
-          >
-            <View style={styles.brandBlock}>
-              <View style={styles.medallionOuter}>
-                <View style={styles.logoDisc}>
-                  <RizomaMark size={56} />
-                </View>
-              </View>
-              <Text style={styles.wordmark} allowFontScaling={false}>
-                Rizoma
-              </Text>
-              <Text style={styles.tagline}>Tu jardín, en orden.</Text>
-            </View>
-          </Animated.View>
+          <Text style={authStyles.forgotText}>¿Olvidaste tu contraseña?</Text>
+        </Pressable>
 
-          <Animated.View
-            style={{
-              opacity: formOpacity,
-              transform: [{ translateY: formTranslate }],
-            }}
-          >
-            <View style={styles.formBlock}>
-              <View style={styles.field}>
-                <Text style={styles.label}>Correo electrónico</Text>
-                <View
-                  style={[
-                    styles.inputShell,
-                    focused === "email" ? styles.inputShellFocused : null,
-                  ]}
-                >
-                  <Mail size={20} color={iconColor("email")} strokeWidth={2.1} />
-                  <TextInput
-                    value={email}
-                    onChangeText={(value) => {
-                      setEmail(value);
-                      clearError();
-                    }}
-                    onFocus={() => setFocused("email")}
-                    onBlur={() => setFocused(null)}
-                    placeholder="tu@email.com"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="email-address"
-                    textContentType="emailAddress"
-                    placeholderTextColor={colors.grayText}
-                    accessibilityLabel="Correo electrónico"
-                    style={styles.input}
-                  />
-                </View>
-              </View>
+        {error ? (
+          <View style={authStyles.errorBox}>
+            <Text style={authStyles.errorText}>{error}</Text>
+          </View>
+        ) : null}
 
-              <View style={styles.field}>
-                <Text style={styles.label}>Contraseña</Text>
-                <View
-                  style={[
-                    styles.inputShell,
-                    focused === "password" ? styles.inputShellFocused : null,
-                  ]}
-                >
-                  <Lock size={20} color={iconColor("password")} strokeWidth={2.1} />
-                  <TextInput
-                    value={password}
-                    onChangeText={(value) => {
-                      setPassword(value);
-                      clearError();
-                    }}
-                    onFocus={() => setFocused("password")}
-                    onBlur={() => setFocused(null)}
-                    placeholder="Tu contraseña"
-                    placeholderTextColor={colors.grayText}
-                    secureTextEntry
-                    textContentType="password"
-                    accessibilityLabel="Contraseña"
-                    style={styles.input}
-                  />
-                </View>
-              </View>
+        <View style={authStyles.ctaStack}>
+          <RizomaButton
+            label={busy ? "Entrando..." : "Iniciar sesión"}
+            onPress={onSubmit}
+            disabled={busy}
+          />
+        </View>
+      </View>
 
-              <Pressable
-                onPress={onForgotPassword}
-                accessibilityRole="button"
-                accessibilityLabel="¿Olvidaste tu contraseña?"
-                style={({ pressed }) => [
-                  styles.forgot,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-              </Pressable>
+      <View style={authStyles.socialPanel}>
+        <View style={authStyles.dividerRow}>
+          <View style={authStyles.dividerLine} />
+          <Text style={authStyles.dividerLabel}>o</Text>
+          <View style={authStyles.dividerLine} />
+        </View>
+        <RizomaButton
+          label={busy ? "Conectando..." : "Continuar con Google"}
+          onPress={onGoogle}
+          variant="google"
+          disabled={busy || !request}
+        />
+      </View>
 
-              {error ? (
-                <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>{error}</Text>
-                </View>
-              ) : null}
+      <Pressable
+        onPress={() => router.push("/register")}
+        disabled={busy}
+        accessibilityRole="button"
+        accessibilityLabel="No tengo cuenta, crear cuenta"
+        focusable={false}
+        hitSlop={8}
+        style={({ pressed }) => [
+          authStyles.authLinkRow,
+          { opacity: pressed || busy ? 0.65 : 1 },
+        ]}
+      >
+        <Text style={authStyles.authLinkLine} numberOfLines={1}>
+          <Text style={authStyles.linkMuted}>¿No tienes cuenta? </Text>
+          <Text style={authStyles.linkAccent}>Crear cuenta</Text>
+        </Text>
+      </Pressable>
 
-              <View style={styles.ctaStack}>
-                <RizomaButton
-                  label={busy ? "Entrando..." : "Iniciar sesión"}
-                  onPress={onSubmit}
-                  disabled={busy}
-                />
-              </View>
-            </View>
-
-            <View style={styles.socialPanel}>
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerLabel}>o</Text>
-                <View style={styles.dividerLine} />
-              </View>
-
-              <RizomaButton
-                label={busy ? "Conectando..." : "Continuar con Google"}
-                onPress={onGoogle}
-                variant="google"
-                disabled={busy || !request}
-              />
-            </View>
-
-            <Pressable
-              onPress={() => router.push("/register")}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel="No tengo cuenta, crear cuenta"
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.authLinkRow,
-                { opacity: pressed || busy ? 0.65 : 1 },
-              ]}
-            >
-              <Text style={styles.authLinkLine} numberOfLines={1}>
-                <Text style={styles.linkMuted}>¿No tienes cuenta? </Text>
-                <Text style={styles.linkAccent}>Crear cuenta</Text>
-              </Text>
-            </Pressable>
-
-            <Text style={styles.legal}>
-              Al continuar aceptas los términos de uso.{"\n"}
-              La sesión se guarda en este dispositivo.
-            </Text>
-          </Animated.View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      <Text style={authStyles.legal}>
+        Al continuar aceptas los términos de uso.{"\n"}
+        La sesión se guarda en este dispositivo.
+      </Text>
+    </AuthScreenShell>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "#E8F8EF",
-  },
-  flex: {
-    flex: 1,
-    zIndex: 1,
-  },
-  scroll: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.screenMargin + 10,
-    paddingTop: 28,
-    paddingBottom: 44,
-  },
-  brandBlock: {
-    alignItems: "center",
-    marginBottom: 4,
-    zIndex: 1,
-  },
-  medallionOuter: {
-    marginBottom: 18,
-    padding: 6,
-    borderRadius: radii.pill,
-    backgroundColor: "rgba(255, 255, 255, 0.55)",
-  },
-  logoDisc: {
-    height: 92,
-    width: 92,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radii.pill,
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.brandSoft,
-    shadowColor: colors.brand,
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-  wordmark: {
-    fontSize: typography.hero + 6,
-    lineHeight: typography.hero + 10,
-    color: leafyLogoColors.wordmark,
-    fontFamily: "Inter_800ExtraBold",
-    letterSpacing: -1.2,
-    textAlign: "center",
-  },
-  tagline: {
-    marginTop: 8,
-    textAlign: "center",
-    fontSize: 16,
-    lineHeight: 22,
-    color: leafyLogoColors.leafDeep,
-    fontFamily: "Inter_500Medium",
-    letterSpacing: 0.2,
-  },
-  formBlock: {
-    marginTop: 32,
-    gap: 18,
-    zIndex: 1,
-  },
-  field: {
-    gap: 0,
-  },
-  label: {
-    marginBottom: 8,
-    marginLeft: 4,
-    fontSize: 12,
-    lineHeight: 16,
-    color: leafyLogoColors.wordmark,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  inputShell: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: radii.xl,
-    borderWidth: 1.5,
-    borderColor: "rgba(229, 231, 235, 0.95)",
-    backgroundColor: "rgba(255, 255, 255, 0.88)",
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === "ios" ? 15 : 4,
-    minHeight: 56,
-  },
-  inputShellFocused: {
-    borderColor: colors.brand,
-    backgroundColor: colors.white,
-    shadowColor: colors.brand,
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 3,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.black,
-    fontFamily: "Inter_500Medium",
-    paddingVertical: Platform.OS === "ios" ? 0 : 12,
-    includeFontPadding: false,
-  },
-  forgot: {
-    alignSelf: "flex-end",
-    paddingHorizontal: 2,
-    paddingVertical: 2,
-    marginTop: -6,
-  },
-  forgotText: {
-    fontSize: 13,
-    color: colors.brand,
-    fontFamily: "Inter_600SemiBold",
-  },
-  errorBox: {
-    borderRadius: radii.lg,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "rgba(239, 68, 68, 0.2)",
-  },
-  errorText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.red,
-    fontFamily: "Inter_500Medium",
-  },
-  ctaStack: {
-    marginTop: 6,
-  },
-  socialPanel: {
-    marginTop: 28,
-    gap: 16,
-    padding: 18,
-    borderRadius: radii.xxl,
-    backgroundColor: "#F2FBF6",
-    borderWidth: 1,
-    borderColor: "rgba(1, 183, 99, 0.08)",
-    zIndex: 1,
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 4,
-  },
-  dividerLine: {
-    height: StyleSheet.hairlineWidth,
-    flex: 1,
-    backgroundColor: "rgba(10, 92, 58, 0.18)",
-  },
-  dividerLabel: {
-    fontSize: 13,
-    color: leafyLogoColors.leafDeep,
-    fontFamily: "Inter_500Medium",
-    letterSpacing: 0.4,
-  },
-  authLinkRow: {
-    marginTop: 36,
-    minHeight: 48,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  authLinkLine: {
-    textAlign: "center",
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  linkMuted: {
-    color: colors.secondaryText,
-    fontFamily: "Inter_400Regular",
-  },
-  linkAccent: {
-    color: colors.brand,
-    fontFamily: "Inter_700Bold",
-  },
-  legal: {
-    marginTop: 8,
-    textAlign: "center",
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.grayText,
-    fontFamily: "Inter_400Regular",
-    paddingHorizontal: spacing.md,
-    zIndex: 1,
-  },
-});

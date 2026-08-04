@@ -2,36 +2,31 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, View } from "react-native";
 import { colors } from "@/src/theme/tokens";
 
-/**
- * Atmósfera «Invernadero Leafy»: gradiente + blobs orgánicos.
- * Colócalo como hermano ABSOLUTO detrás del ScrollView (no dentro),
- * para que no infle la altura del contenido ni empuje el formulario.
- */
+/** Fondo invernadero: hermano absoluto detrás del formulario (no captura toques). */
 export function AuthGreenhouseDecor() {
   return (
-    <View style={styles.root} pointerEvents="none">
+    <View style={styles.root} pointerEvents="none" collapsable={false}>
       <LinearGradient
         colors={["#E8F8EF", "#F5FCF8", "#FFFFFF"]}
         locations={[0, 0.45, 1]}
         style={styles.wash}
+        pointerEvents="none"
       />
-      {/* Arco/blob superior detrás del logo */}
-      <View style={styles.arc} />
-      <View style={styles.blobLeft} />
-      <View style={styles.blobRight} />
-      <View style={styles.softGlow} />
+      <View style={styles.arc} pointerEvents="none" />
+      <View style={styles.blobLeft} pointerEvents="none" />
+      <View style={styles.blobRight} pointerEvents="none" />
+      <View style={styles.softGlow} pointerEvents="none" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: "hidden",
-    zIndex: 0,
   },
   wash: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   arc: {
     position: "absolute",
