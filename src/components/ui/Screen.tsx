@@ -1,12 +1,17 @@
 import { ReactNode } from "react";
 import { ScrollView, View, ViewStyle } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, type Edges } from "react-native-safe-area-context";
 import { colors, spacing } from "@/src/theme/tokens";
 
 interface ScreenProps {
   children: ReactNode;
   scroll?: boolean;
+  /** When false, skips horizontal/top padding (full-bleed heroes). Default true. */
+  padded?: boolean;
+  backgroundColor?: string;
+  edges?: Edges;
   contentContainerStyle?: ViewStyle;
+  style?: ViewStyle;
 }
 
 /**
@@ -16,20 +21,27 @@ interface ScreenProps {
 export function Screen({
   children,
   scroll = false,
+  padded = true,
+  backgroundColor = colors.white,
+  edges = ["top", "left", "right"],
   contentContainerStyle,
+  style,
 }: ScreenProps) {
+  const padStyle: ViewStyle = padded
+    ? {
+        paddingHorizontal: spacing.screenMargin,
+        paddingTop: 8,
+      }
+    : {};
+
   if (scroll) {
     return (
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: colors.white }}
-        edges={["top", "left", "right"]}
-      >
+      <SafeAreaView style={{ flex: 1, backgroundColor }} edges={edges}>
         <ScrollView
-          style={{ flex: 1, minHeight: 0, backgroundColor: colors.white }}
+          style={{ flex: 1, minHeight: 0, backgroundColor }}
           contentContainerStyle={{
-            paddingHorizontal: spacing.screenMargin,
+            ...padStyle,
             paddingBottom: 40,
-            paddingTop: 8,
             flexGrow: 1,
             ...contentContainerStyle,
           }}
@@ -43,16 +55,13 @@ export function Screen({
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.white }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor }} edges={edges}>
       <View
         style={{
           flex: 1,
-          backgroundColor: colors.white,
-          paddingHorizontal: spacing.screenMargin,
-          paddingTop: 8,
+          backgroundColor,
+          ...padStyle,
+          ...style,
         }}
       >
         {children}
