@@ -1,68 +1,66 @@
 # Rizoma
 
-App movil (Expo + React Native + TypeScript) de e-commerce boutique de plantas premium.
-Direccion visual inspirada en el proyecto Behance Leafy, con identidad propia Rizoma.
+App móvil (Expo + React Native + TypeScript) de e-commerce boutique de plantas premium.
+Dirección visual inspirada en Leafy (Behance), con identidad propia Rizoma.
 
-## Design system (Leafy-inspired)
+## Design system
 
 - Brand: `#01B763`
-- Red / Yellow / Black / White / Gray: `#EF4444` / `#F1B826` / `#2B2B2B` / `#FFFFFF` / `#EEF2F6`
-- Tipografia: Inter (Headline 36/28, Body 24/16)
-- Grid movil: margenes 13px, 4 columnas, gutter 12px
-- Tabs: Inicio, Carrito, Favoritos, Chat, Perfil
-- Flujos: checkout con pedidos persistidos, chat por hilo, onboarding primer arranque
+- Tipografía: Inter
+- Grid móvil: márgenes 13px, 4 columnas, gutter 12px
+- Tabs: Inicio, Carrito, Favoritos, Chat, Perfil (catálogo en Explore, oculto del tab bar)
 
 ## Stack
 
-- Expo Router, NativeWind, Reanimated, Lucide, Jest (`@react-native/jest-preset`), AsyncStorage
+- Expo Router 57, NativeWind, Lucide, Jest, AsyncStorage
+- Auth local (email/password con hash) + Google Sign-In (`id_token`)
 
 ## Estructura
 
-- `app/`: rutas y pantallas (incl. `chat/[id]`)
-- `src/components/`: UI y catalogo
-- `src/data/`: plantas mock y categorias
-- `src/store/`: carrito, wishlist, pedidos, jardin
-- `src/services/`: scan y plant match
-- `src/theme/`: tokens + FontProvider
-- `src/utils/`: pricing, filtros, labels ES
+- `app/`: rutas y pantallas
+- `src/components/`: UI, brand, auth, catálogo, perfil
+- `src/context/`: sesión Auth
+- `src/navigation/`: reglas de gate post-splash
+- `src/store/`: Shop, Garden, Chat, Onboarding + persistence
+- `src/services/`: userStore, scan, plant match
+- `src/data/`: plantas mock, chat seeds, categorías
+- `src/theme/`: tokens + FontProvider/splash
+- `src/utils/`: pricing, shipping, filtros, labels
+
+## Flujo de arranque
+
+1. Splash de marca
+2. Sesión abierta → home (o onboarding si la cuenta es nueva)
+3. Sin sesión → login
+4. Register → bienvenida → home
+5. Login / Google → home (o bienvenida si aplica)
 
 ## Scripts
 
-- `npm run start` / `android` / `ios` / `web` / `test`
-
-## Checklist de feedback visual (QA)
-
-Probar en **emulador Android / Expo Go** (mejor que web) y comparar con capturas Leafy:
-
-1. **Inicio** — saludo con nombre de perfil, campana con punto rojo, carrusel de promos, chips + grid
-2. **Catálogo** — filtros ES, contador de plantas, empty state con icono
-3. **Ficha planta** — margen 13px, reseñas, stepper cantidad, comprar ahora
-4. **Carrito / Favoritos** — totales, toast al añadir todos, empty states brand
-5. **Checkout** — “Finalizar compra”, Anterior entre pasos, éxito con volver al inicio
-6. **Pedidos** — historial + cancelar
-7. **Chat** — CTA soporte, burbujas, enviar con icono, escribiendo…
-8. **Scan** — “Encuadra la planta”, overlay al escanear, resultados pulsables
-9. **Onboarding** — iconos por slide, Saltar, dots Leafy
-10. **Perfil / Login** — menú limpio, iniciar sesión vs invitado
-
-## Nota
-
-El diseño se itera hasta alcanzar nivel Behance. Feedback visual bienvenido en cada tanda.
+```bash
+npm run start
+npm run android
+npm run ios
+npm run test
+npm run typecheck
+```
 
 ## Google Sign-In (Expo Go)
 
-En Google Cloud Console → cliente OAuth **tipo Web**, añade estas Authorized redirect URIs:
+En Google Cloud Console → cliente OAuth **tipo Web**, añade:
 
 - `rizoma://`
 - `rizoma://oauthredirect`
-- El URI exacto que imprime Metro al abrir login en `__DEV__` (suele ser `exp://IP:puerto` o similar). Sin ese URI, Expo Go falla con `redirect_uri_mismatch`.
+- El URI exacto que imprime Metro al abrir login en `__DEV__`
 
-Nunca guardes el `client_secret` en la app ni en el repo. Si se expuso, rótalo en la consola.
+Client IDs: `.env` (`EXPO_PUBLIC_GOOGLE_*`) o fallbacks en `src/config/googleAuth.ts`.
+Nunca guardes el `client_secret` en la app.
 
-## Flujos recientes
+## Checklist QA visual
 
-- Home scrollable con carrusel de promos y subtítulos de categoría
-- Checkout con pasos atrás, pedidos cancelables y envío calculado
-- Chat con timestamps e indicador “escribiendo…”
-- Jardín con barra de riego y skeleton de carga
-- Auth: Google Sign-In real (id_token) + sesión persistida; email/password sigue siendo mock
+1. Inicio — saludo, promos, chips
+2. Catálogo / ficha — filtros, reseñas, comprar
+3. Carrito / Favoritos — totales, empty states
+4. Checkout / Pedidos — pasos, cancelar, tracking
+5. Chat / Scan / Jardín
+6. Onboarding / Login / Register / Perfil
