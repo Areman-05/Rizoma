@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.rizoma.app",
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#1E3B2B",
         "foregroundImage": "./assets/android-icon-foreground.png",
