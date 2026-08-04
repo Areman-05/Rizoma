@@ -48,10 +48,6 @@ export const typography = {
   body: 16,
   caption: 13,
   micro: 11,
-  headlineLg: { size: 36, lineHeight: 36 * 1.3 },
-  headlineSm: { size: 28, lineHeight: 28 * 1.3 },
-  bodyLg: { size: 24, lineHeight: 24 * 1.44 },
-  bodySm: { size: 16, lineHeight: 16 * 1.44 },
 };
 
 export const elevation = {
@@ -62,16 +58,4 @@ export const elevation = {
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  pop: {
-    shadowColor: "#000000",
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-};
-
-export const motion = {
-  pressScale: 0.97,
-  spring: { damping: 16, stiffness: 220 },
 };

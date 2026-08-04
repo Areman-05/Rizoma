@@ -1,6 +1,6 @@
 ﻿import { Tabs } from "expo-router";
 import { Heart, Home, MessageCircle, ShoppingBag, User } from "lucide-react-native";
-import { View } from "react-native";
+import { ColorValue, View } from "react-native";
 import { colors } from "@/src/theme/tokens";
 import { useShop } from "@/src/store/ShopContext";
 
@@ -12,14 +12,15 @@ function TabIcon({
   filled,
 }: {
   focused: boolean;
-  color: string;
+  color: ColorValue;
   size: number;
   Icon: typeof Home;
   filled?: boolean;
 }) {
+  const tint = typeof color === "string" ? color : colors.brand;
   return (
     <View className="items-center">
-      <Icon color={color} size={size} fill={filled && focused ? color : "transparent"} />
+      <Icon color={tint} size={size} fill={filled && focused ? tint : "transparent"} />
       {focused ? <View className="mt-1 h-1 w-1 rounded-full bg-rizoma-brand" /> : <View className="mt-1 h-1 w-1" />}
     </View>
   );

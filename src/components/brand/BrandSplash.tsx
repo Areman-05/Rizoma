@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   guides: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "space-evenly",
     paddingVertical: 48,
     opacity: 0.4,

@@ -6,8 +6,6 @@ import { colors, spacing } from "@/src/theme/tokens";
 interface ScreenProps {
   children: ReactNode;
   scroll?: boolean;
-  /** Reserved for callers that still pass Tailwind; layout uses inline styles. */
-  className?: string;
   contentContainerStyle?: ViewStyle;
 }
 
