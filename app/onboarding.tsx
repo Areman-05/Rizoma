@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RizomaLogo } from "@/src/components/brand/RizomaLogo";
 import { OnboardingArt } from "@/src/components/onboarding/OnboardingArt";
 import { RizomaButton } from "@/src/components/ui/RizomaButton";
@@ -13,6 +14,7 @@ import { colors } from "@/src/theme/tokens";
 const SLIDE_FADE_MS = 280;
 
 export default function OnboardingScreen() {
+  const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const { completeOnboarding } = useOnboarding();
@@ -80,6 +82,8 @@ export default function OnboardingScreen() {
     }
   };
 
+  const bottomPad = Math.max(insets.bottom, 12) + 10;
+
   return (
     <Screen padded={false} backgroundColor={colors.white}>
       <LinearGradient
@@ -87,7 +91,15 @@ export default function OnboardingScreen() {
         locations={[0, 0.35, 1]}
         style={{ flex: 1 }}
       >
-        <View className="flex-1 justify-between px-[13px] pb-5 pt-3">
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "space-between",
+            paddingHorizontal: 13,
+            paddingTop: 12,
+            paddingBottom: bottomPad,
+          }}
+        >
           <View className="flex-row items-center justify-between pt-1">
             <RizomaLogo size="md" />
             <Pressable
@@ -110,13 +122,13 @@ export default function OnboardingScreen() {
               transform: [{ translateY: contentTranslate }],
               flex: 1,
               justifyContent: "center",
-              paddingVertical: 12,
+              paddingVertical: 8,
             }}
           >
             <OnboardingArt id={slide.id} />
 
             <Text
-              className="mt-7 text-center text-[28px] leading-9 text-rizoma-wordmark"
+              className="mt-6 text-center text-[28px] leading-9"
               style={{ fontFamily: "Inter_700Bold", color: colors.wordmark }}
             >
               {slide.title}
@@ -129,7 +141,7 @@ export default function OnboardingScreen() {
             </Text>
             <View className="mt-4 self-center rounded-full bg-white/80 px-3.5 py-2">
               <Text
-                className="text-center text-[12px] text-rizoma-leafDeep"
+                className="text-center text-[12px]"
                 style={{ fontFamily: "Inter_500Medium", color: colors.leafDeep }}
               >
                 {slide.detail}
@@ -138,15 +150,21 @@ export default function OnboardingScreen() {
           </Animated.View>
 
           <View>
-            <View className="mb-5 flex-row items-center justify-center gap-2">
-              {onboardingSlides.map((item, dotIndex) => (
-                <View
-                  key={item.id}
-                  className={`h-2 rounded-full ${
-                    dotIndex === index ? "w-7 bg-rizoma-brand" : "w-2 bg-rizoma-border"
-                  }`}
-                />
-              ))}
+            <View className="mb-4 flex-row items-center justify-center gap-2">
+              {onboardingSlides.map((item, dotIndex) => {
+                const active = dotIndex === index;
+                return (
+                  <View
+                    key={item.id}
+                    style={{
+                      height: 8,
+                      width: active ? 28 : 8,
+                      borderRadius: 999,
+                      backgroundColor: active ? colors.brand : "rgba(1, 183, 99, 0.22)",
+                    }}
+                  />
+                );
+              })}
             </View>
             <RizomaButton
               label={
