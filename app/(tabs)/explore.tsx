@@ -63,52 +63,48 @@ export default function ExploreScreen() {
               {plants.length} plantas · filtra por categoría
             </Text>
 
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
-                width: "100%",
-                marginBottom: 12,
-              }}
-            >
-              <Pressable
-                onPress={() => setShopFilter(null)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: shopFilter === null }}
-                accessibilityLabel="Todas las categorías"
-                className="items-center"
-                style={{ flex: 1, alignItems: "center" }}
-              >
-                <View
-                  className={`h-11 w-11 items-center justify-center rounded-full ${
-                    shopFilter === null ? "bg-rizoma-brand" : "bg-rizoma-brandSoft"
-                  }`}
+            <View className="mb-3 w-full flex-row items-start justify-between">
+              <View style={{ width: "19%" }} className="items-center">
+                <Pressable
+                  onPress={() => setShopFilter(null)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: shopFilter === null }}
+                  accessibilityLabel="Todas las categorías"
+                  className="w-full items-center"
+                  style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
                 >
-                  <LayoutGrid
-                    size={18}
-                    color={shopFilter === null ? colors.white : colors.brand}
+                  <View
+                    className={`h-11 w-11 items-center justify-center rounded-full ${
+                      shopFilter === null ? "bg-rizoma-brand" : "bg-rizoma-brandSoft"
+                    }`}
+                  >
+                    <LayoutGrid
+                      size={18}
+                      color={shopFilter === null ? colors.white : colors.brand}
+                    />
+                  </View>
+                  <Text
+                    className={`mt-1.5 text-center text-[11px] ${
+                      shopFilter === null ? "text-rizoma-brand" : "text-rizoma-black"
+                    }`}
+                    style={{
+                      fontFamily: shopFilter === null ? "Inter_700Bold" : "Inter_600SemiBold",
+                    }}
+                    numberOfLines={1}
+                  >
+                    Todas
+                  </Text>
+                </Pressable>
+              </View>
+              {shopCategories.map((item) => (
+                <View key={item.id} style={{ width: "19%" }} className="items-center">
+                  <CategoryIconButton
+                    category={item}
+                    compact
+                    active={shopFilter === item.id}
+                    onPress={onShopPress}
                   />
                 </View>
-                <Text
-                  className={`mt-1.5 text-center text-[11px] ${
-                    shopFilter === null ? "text-rizoma-brand" : "text-rizoma-black"
-                  }`}
-                  style={{ fontFamily: shopFilter === null ? "Inter_700Bold" : "Inter_600SemiBold" }}
-                  numberOfLines={1}
-                >
-                  Todas
-                </Text>
-              </Pressable>
-              {shopCategories.map((item) => (
-                <CategoryIconButton
-                  key={item.id}
-                  category={item}
-                  compact
-                  distributed
-                  active={shopFilter === item.id}
-                  onPress={onShopPress}
-                />
               ))}
             </View>
 

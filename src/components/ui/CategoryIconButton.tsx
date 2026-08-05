@@ -14,8 +14,6 @@ interface CategoryIconButtonProps {
   category: ShopCategory;
   active?: boolean;
   compact?: boolean;
-  /** Equal-width slot in a full-width row (catalog). */
-  distributed?: boolean;
   onPress: (id: ShopCategoryId) => void;
 }
 
@@ -23,7 +21,6 @@ export function CategoryIconButton({
   category,
   active = false,
   compact = false,
-  distributed = false,
   onPress,
 }: CategoryIconButtonProps) {
   const Icon = iconMap[category.icon];
@@ -36,14 +33,9 @@ export function CategoryIconButton({
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       accessibilityLabel={`Categoría ${category.label}`}
-      className="items-center"
+      className="w-full items-center"
       style={({ pressed }) => ({
         opacity: pressed ? 0.85 : 1,
-        ...(distributed
-          ? { flex: 1, alignItems: "center" as const }
-          : compact
-            ? { width: 72 }
-            : {}),
       })}
     >
       <View
